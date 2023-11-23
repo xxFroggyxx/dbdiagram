@@ -1,3 +1,6 @@
 spring:
   profiles:
     active: dev
+  banner:
+    charset: UTF-8
+    location: banner.txt
