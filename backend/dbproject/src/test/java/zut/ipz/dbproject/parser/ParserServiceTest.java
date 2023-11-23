@@ -2,13 +2,22 @@ package zut.ipz.dbproject.parser;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import zut.ipz.dbproject.praser.ParserService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+@ExtendWith(SpringExtension.class)
+@Import(ParserService.class)
 class ParserServiceTest {
 
+    @Autowired
     private ParserService parserService;
 
     @BeforeEach
@@ -68,12 +77,19 @@ class ParserServiceTest {
                                 """);
     }
 
-    @Test
-    void throwing_exception_when_given_string_is_empty() {
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "",
+            "This is not sql",
+    })
+    void throwing_exception_when_given_string_is_invalid() {
+
         // given
+
         final String givenString = "";
 
         // when
+
         final Throwable thrown = catchThrowable(() -> parserService.parse(givenString));
 
         // then
@@ -94,16 +110,5 @@ class ParserServiceTest {
         assertThat(thrown).isNotNull();
     }
 
-    @Test
-    void throwing_exception_when_given_string_is_not_sql() {
-        // given
-        final String givenString = "This is not sql";
-
-        // when
-        final Throwable thrown = catchThrowable(() -> parserService.parse(givenString));
-
-        // then
-        assertThat(thrown).isNotNull();
-    }
 
 }
