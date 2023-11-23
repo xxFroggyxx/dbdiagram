@@ -58,13 +58,13 @@ class ParserServiceTest {
         // then
         assertThat(actualString).isEqualTo("""
                 erDiagram
-                    CUSTOMER ||--o{ ORDER : places
+                    CUSTOMER ||--o{ ORDER : ""
                     CUSTOMER {
                         string name
                         string custNumber
                         string sector
                     }
-                    ORDER ||--|{ LINE-ITEM : contains
+                    ORDER ||--|{ LINE-ITEM : ""
                     ORDER {
                         int orderNumber
                         string deliveryAddress
@@ -82,11 +82,11 @@ class ParserServiceTest {
             "",
             "This is not sql",
     })
-    void throwing_exception_when_given_string_is_invalid() {
+    void throwing_exception_when_given_string_is_invalid(String strings) {
 
         // given
 
-        final String givenString = "";
+        final String givenString = strings;
 
         // when
 
