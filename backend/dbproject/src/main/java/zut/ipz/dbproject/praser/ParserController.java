@@ -56,7 +56,7 @@ public class ParserController {
      * @see "https://mermaid.js.org/syntax/entityRelationshipDiagram.html"
      */
     @PostMapping(ApiConfiguration.PARSER)
-    public String parser(@RequestParam("sqlFile") String sqlFile) {
-        return parserService.parse(sqlFile);
+    public String parser(@RequestParam("sqlFile") MultipartFile sqlFile) {
+        return parserService.parseSql(sqlFile);
     }
 }
