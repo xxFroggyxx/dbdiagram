@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  display: grid;
+  place-items: center;
+  @apply bg-white dark:bg-black;
+}
+
+button {
+  @apply bg-black dark:bg-white;
+}
