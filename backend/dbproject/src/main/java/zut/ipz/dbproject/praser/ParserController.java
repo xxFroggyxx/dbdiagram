@@ -1,10 +1,15 @@
 package zut.ipz.dbproject.praser;
 
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import zut.ipz.dbproject.common.configuration.ApiConfiguration;
+
+
 
 /**
  * This class is the main controller for the API.
@@ -16,6 +21,8 @@ import zut.ipz.dbproject.common.configuration.ApiConfiguration;
 @RequestMapping(ApiConfiguration.API)
 @AllArgsConstructor
 public class ParserController {
+
+    private final Logger logger = LoggerFactory.getLogger(ParserController.class.getName());
 
     private final ParserService parserService;
 
@@ -56,7 +63,17 @@ public class ParserController {
      * @see "https://mermaid.js.org/syntax/entityRelationshipDiagram.html"
      */
     @PostMapping(ApiConfiguration.PARSER)
-    public String parser(@RequestParam("sqlFile") MultipartFile sqlFile) {
-        return parserService.parseSql(sqlFile);
+    public ResponseEntity<String> parser(@RequestPart(name = "sqlFile") MultipartFile sqlFile) {
+
+        if (sqlFile == null) {
+            logger.error("File is null");
+            return ResponseEntity.badRequest().body("File is null");
+        }
+        if (sqlFile.isEmpty()) {
+            logger.error("File is empty");
+            return ResponseEntity.badRequest().body("File is empty");
+        }
+
+        return ResponseEntity.ok().body("Jest ok");
     }
 }
