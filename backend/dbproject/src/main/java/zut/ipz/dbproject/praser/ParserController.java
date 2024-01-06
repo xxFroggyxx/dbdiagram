@@ -1,6 +1,7 @@
 package zut.ipz.dbproject.praser;
 
 import lombok.AllArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
@@ -74,6 +75,6 @@ public class ParserController {
             return ResponseEntity.badRequest().body("File is empty");
         }
 
-        return ResponseEntity.ok().body("Jest ok");
+        return ResponseEntity.ok().body(parserService.parse(sqlFile));
     }
 }

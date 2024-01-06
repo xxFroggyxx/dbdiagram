@@ -1,14 +1,17 @@
 package zut.ipz.dbproject.table;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
 public class Table {
     private String name;
     private List<Field> fields;
@@ -24,9 +27,22 @@ public class Table {
         }
         stringBuilder.append("}\n");
         for (ForeignKey foreignKey : foreignKeys) {
-            stringBuilder.append(name).append(" ||--{ ").
-                    append(foreignKey.getReferencedTable()).append(": \" \"" + "\n");
+            stringBuilder.append(foreignKey.toString()).append("\n");
         }
         return stringBuilder.toString();
+    }
+
+    public Table(String name) {
+        this.name = name;
+        this.fields = new ArrayList<>();
+        this.foreignKeys = new ArrayList<>();
+    }
+
+    public void addField(Field field) {
+        this.fields.add(field);
+    }
+
+    public void addForeignKey(ForeignKey foreignKey) {
+        this.foreignKeys.add(foreignKey);
     }
 }

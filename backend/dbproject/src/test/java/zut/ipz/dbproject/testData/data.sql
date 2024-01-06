@@ -22,7 +22,7 @@ CREATE TABLE Produkty
 (
     ID            INT PRIMARY KEY,
     NazwaProduktu VARCHAR(100),
-    Cena          DECIMAL(10, 2)
+    Cena          DECIMAL(10)
 );
 
 -- Tworzenie tabeli SzczegolyZamowienia
@@ -32,7 +32,7 @@ CREATE TABLE SzczegolyZamowienia
     ZamowienieID    INT,
     ProduktID       INT,
     Ilosc           INT,
-    CenaJednostkowa DECIMAL(10, 2),
+    CenaJednostkowa DECIMAL(10),
     FOREIGN KEY (ZamowienieID) REFERENCES Zamowienia (ID),
     FOREIGN KEY (ProduktID) REFERENCES Produkty (ID)
 );

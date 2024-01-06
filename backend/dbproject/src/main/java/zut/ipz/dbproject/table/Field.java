@@ -1,18 +1,21 @@
 package zut.ipz.dbproject.table;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Component
+@Getter
 public class Field {
     private String name;
     private String type;
     private boolean isPrimaryKey;
     private boolean isForeignKey;
     private boolean isUnique;
+
 
     @Override
     public String toString() {
@@ -44,5 +47,7 @@ public class Field {
 
         }
         return stringBuilder.toString();
+
+
     }
 }
