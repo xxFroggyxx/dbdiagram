@@ -1,15 +1,16 @@
 package zut.ipz.dbproject.praser;
 
 import lombok.AllArgsConstructor;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import zut.ipz.dbproject.common.configuration.ApiConfiguration;
 
+import java.util.Objects;
 
 
 /**
@@ -74,7 +75,14 @@ public class ParserController {
             logger.error("File is empty");
             return ResponseEntity.badRequest().body("File is empty");
         }
-
+        if (!Objects.requireNonNull(sqlFile.getOriginalFilename()).endsWith(".sql")) {
+            logger.error("File is not sql");
+            return ResponseEntity.badRequest().body("File is not sql");
+        }
+        if (sqlFile.getSize() > 10485760) {
+            logger.error("File is too big");
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body("File is too big");
+        }
         return ResponseEntity.ok().body(parserService.parse(sqlFile));
     }
 }

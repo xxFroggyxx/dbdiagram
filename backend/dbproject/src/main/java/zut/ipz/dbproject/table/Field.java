@@ -3,12 +3,14 @@ package zut.ipz.dbproject.table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Component
 @Getter
+@Setter
 public class Field {
     private String name;
     private String type;
@@ -16,7 +18,10 @@ public class Field {
     private boolean isForeignKey;
     private boolean isUnique;
 
-
+    public Field(String name, String type) {
+        this.name = name;
+        this.type = type;
+    }
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();

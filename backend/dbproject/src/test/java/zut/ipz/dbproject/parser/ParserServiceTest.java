@@ -17,13 +17,13 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 @Import(ParserService.class)
 class ParserServiceTest {
 
-    @Autowired
-    private ParserService parserService;
-
-    @BeforeEach
-    void setup() {
-        ParserService parserService = new ParserService();
-    }
+//    @Autowired
+//    private ParserService parserService;
+//
+//    @BeforeEach
+//    void setup() {
+//        ParserService parserService = new ParserService();
+//    }
 
 //    @Test
 //    void returns_parsed_string_when_given_string_is_valid() {
