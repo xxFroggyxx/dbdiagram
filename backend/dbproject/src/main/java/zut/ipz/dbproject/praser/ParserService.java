@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.IllegalFormatCodePointException;
 import java.util.List;
 
@@ -37,7 +38,6 @@ public class ParserService {
      */
 
 
-
     public String parse(MultipartFile sqlFile) {
         StringBuilder output = new StringBuilder();
         output.append("erDiagram\n");
@@ -54,7 +54,7 @@ public class ParserService {
                 continue;
             }
             if (foundCreateTable) {
-                foundCreateTable = parseFieldsAndRelations(tempTable, line, tables,parserRelations);
+                foundCreateTable = parseFieldsAndRelations(tempTable, line, tables, parserRelations);
             }
 
         }
@@ -71,7 +71,7 @@ public class ParserService {
         return output.toString();
     }
 
-    private static boolean parseFieldsAndRelations(Table tempTable, String line, List<Table> tables,List<ParserRelation> parserRelations) {
+    private static boolean parseFieldsAndRelations(Table tempTable, String line, List<Table> tables, List<ParserRelation> parserRelations) {
         if (line.contains("(") && line.split(" ").length == 1) {
             return true;
         }
@@ -80,7 +80,7 @@ public class ParserService {
             return false;
         }
         if (line.contains("FOREIGN KEY")) {
-            parserRelations.add(new ParserRelation(line,tempTable.getName()));
+            parserRelations.add(new ParserRelation(line, tempTable.getName()));
 
         } else if (line.contains("PRIMARY KEY (")) {
             parsePrimaryKey(line, tempTable);
@@ -96,13 +96,17 @@ public class ParserService {
 
     private static void parsePrimaryKey(String line, Table tempTable) {
         String[] splittedLine = parserUtilities.splitLine(line);
-        String primaryKey = parserUtilities.removeSpecialSigns(splittedLine[2]);
-        Field field = parserUtilities.findFieldByName(primaryKey, tempTable);
-        if (field == null) {
-            logger.error("Primary key not found");
-            throw new IllegalFormatCodePointException(1);
+        String[] primaryKeys = splittedLine[2].split(",");
+        Arrays.stream(primaryKeys).forEach(parserUtilities::removeSpecialSigns);
+        for (String primaryKey : primaryKeys) {
+            Field field = parserUtilities.findFieldByName(primaryKey, tempTable);
+            if (field == null) {
+                logger.error("Primary key not found");
+                throw new IllegalFormatCodePointException(1);
+            }
+            field.setPrimaryKey(true);
+
         }
-        field.setPrimaryKey(true);
     }
 
     /**
@@ -122,7 +126,7 @@ public class ParserService {
         return lines;
     }
 
-    private static ForeignKey getForeignKey(ParserRelation parserRelation,List<Table> tables) {
+    private static ForeignKey getForeignKey(ParserRelation parserRelation, List<Table> tables) {
 
         boolean isOneToOne = false;
 
@@ -145,7 +149,7 @@ public class ParserService {
             isOneToOne = true;
         }
         field.setForeignKey(true);
-        return new ForeignKey(parserRelation.getReferencedTableName(), isOneToOne, parserRelation.currentTableName );
+        return new ForeignKey(parserRelation.getReferencedTableName(), isOneToOne, parserRelation.currentTableName);
 
     }
 
