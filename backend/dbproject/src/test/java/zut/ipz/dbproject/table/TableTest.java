@@ -9,7 +9,6 @@ import java.util.List;
 
 @ExtendWith(SpringExtension.class)
 @Import({Table.class, Field.class, ForeignKey.class})
-
 class TableTest {
 
     @Test
@@ -20,18 +19,21 @@ class TableTest {
                 new Field("AnotherField", "INT", false, true, false),
                 new Field("ThirdField", "DATE", false, false, true),
                 new Field("FourthField", "VARCHAR", true, true, true));
-        List<ForeignKey> foreignKey = List.of(new ForeignKey("Tabela2"), new ForeignKey("Tabela3"));
+        List<ForeignKey> foreignKey = List.of(
+                new ForeignKey("Tabela2", false, "Tabela1"),
+                new ForeignKey("Tabela1", false, "Tabela3"));
         Table table = new Table(name, fields, foreignKey);
-        String expectedString = """
-                Tabela1{
-                VARCHAR Field pk
-                INT AnotherField fk
-                DATE ThirdField uk
-                VARCHAR FourthField pk,fk,uk
-                }
-                Tabela1 ||--{ Tabela2: " "
-                Tabela1 ||--{ Tabela3: " "
-                """;
+        String expectedString =
+                """
+                        Tabela1{
+                        VARCHAR Field pk
+                        INT AnotherField fk
+                        DATE ThirdField uk
+                        VARCHAR FourthField pk,fk,uk
+                        }
+                        Tabela2 ||--|{ Tabela1: " "
+                        Tabela1 ||--|{ Tabela3: " "
+                                        """;
         // when
         String actualString = table.toString();
 
