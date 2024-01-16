@@ -2,7 +2,7 @@
 import { createPortal } from 'react-dom';
 import { useControls } from 'react-zoom-pan-pinch';
 
-const TransformActions = () => {
+export const TransformActions = () => {
   const { zoomIn, zoomOut, centerView, resetTransform } = useControls();
 
   return createPortal(
@@ -20,10 +20,11 @@ const TransformActions = () => {
         <button type="button" onClick={() => resetTransform()}>
           reset
         </button>
+        <button type="button" onClick={() => window.location.reload()}>
+          Try with new db
+        </button>
       </div>
     </div>,
     document.querySelector('#output')!
   );
 };
-
-export default TransformActions;

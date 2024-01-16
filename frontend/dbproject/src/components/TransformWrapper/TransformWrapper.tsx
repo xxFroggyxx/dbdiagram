@@ -1,9 +1,13 @@
 'use client';
 import { TransformComponent, TransformWrapper as ZPPTransformWrapper } from 'react-zoom-pan-pinch';
 
-export function TransformWrapper({ children }: any) {
+type TransformWrapperTypes = {
+  children: React.ReactNode;
+};
+
+export function TransformWrapper({ children }: TransformWrapperTypes) {
   return (
-    <ZPPTransformWrapper centerOnInit limitToBounds={false}>
+    <ZPPTransformWrapper centerOnInit limitToBounds={false} minScale={0.4}>
       <TransformComponent>{children}</TransformComponent>
     </ZPPTransformWrapper>
   );

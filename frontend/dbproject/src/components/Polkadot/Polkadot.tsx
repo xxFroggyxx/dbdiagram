@@ -1,8 +1,6 @@
-import React from 'react';
-
-const Polkadot = () => {
+export const Polkadot = () => {
   return (
-    <svg style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
+    <svg style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, zIndex: -1 }}>
       <pattern
         id="pattern-heroundefined"
         x="10"
@@ -18,5 +16,3 @@ const Polkadot = () => {
     </svg>
   );
 };
-
-export default Polkadot;

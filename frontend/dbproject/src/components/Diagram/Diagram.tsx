@@ -1,18 +1,20 @@
-// TODO: mermaid.render
-
 'use client';
 import mermaid from 'mermaid';
 import { useEffect, useState } from 'react';
 import { useMedia } from 'react-use';
 
-const theme = {
+type DiagramTypes = {
+  chart: string;
+};
+
+const THEME = {
   dark: {
-    primaryColor: 'red',
-    primaryTextColor: '#17202A',
-    primaryBorderColor: '#7C0000',
+    primaryColor: '#1F2021',
+    primaryTextColor: '#666666',
+    primaryBorderColor: '#81B1DB',
     lineColor: '#F8B229',
-    secondaryColor: '#006100',
-    tertiaryColor: '#fff',
+    secondaryColor: '#666666',
+    tertiaryColor: '#666666',
   },
   light: {
     primaryColor: 'red',
@@ -24,13 +26,13 @@ const theme = {
   },
 };
 
-export const Diagram = ({ chart }: any) => {
+export const Diagram = ({ chart }: DiagramTypes) => {
   const isDarkMode = useMedia('(prefers-color-scheme: dark)', false);
   const [svgContent, setSvgContent] = useState('');
 
   const { primaryColor, primaryTextColor, primaryBorderColor, lineColor, secondaryColor, tertiaryColor } = isDarkMode
-    ? theme['dark']
-    : theme['light'];
+    ? THEME['dark']
+    : THEME['light'];
 
   useEffect(() => {
     mermaid.initialize({
@@ -44,7 +46,7 @@ export const Diagram = ({ chart }: any) => {
         const themedChart = `
         %%{
           init: {
-            'theme': 'dark',
+            'theme': 'base',
             'themeVariables': {
               'primaryColor': '${primaryColor}',
               'primaryTextColor': '${primaryTextColor}',
@@ -59,7 +61,6 @@ export const Diagram = ({ chart }: any) => {
         `;
         const { svg } = await mermaid.render('dest', themedChart);
         setSvgContent(svg);
-        // console.log(svg);
       } catch (error) {
         console.log('Error:', error);
       }
