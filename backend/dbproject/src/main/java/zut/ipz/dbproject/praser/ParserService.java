@@ -26,6 +26,7 @@ import java.util.List;
 public class ParserService {
     private static final ParserUtilities parserUtilities = new ParserUtilities();
     private static final Logger logger = LoggerFactory.getLogger(ParserService.class.getName());
+    private static List<ParserRelation> relations = new ArrayList<>();
 
     /**
      * This method parses a string.
@@ -37,10 +38,11 @@ public class ParserService {
 
 
     public String parse(MultipartFile sqlFile) {
+        relations = new ArrayList<>();
+
         StringBuilder output = new StringBuilder();
         output.append("erDiagram\n");
         List<String> lines = getLines(sqlFile);
-        List<ParserRelation> parserRelations = new ArrayList<>();
         boolean foundCreateTable = false;
         List<Table> tables = new ArrayList<>();
         Table tempTable = null;
@@ -49,19 +51,19 @@ public class ParserService {
             line = line.trim();
             if (line.contains("CREATE TABLE")) {
                 foundCreateTable = true;
-                line = ParserService.parserUtilities.removeBacktickSign(line);
-                tempTable = new Table(parserUtilities.splitBySpaceAndRemoveEmptyElements(line)[TableConstant.TABLE_NAME.index]);
+                String[] lineInfo = parserUtilities.getLineInformationFrom(line);
+                tempTable = new Table(lineInfo[TableConstant.TABLE_NAME.index]);
                 continue;
             }
             if (foundCreateTable) {
-                foundCreateTable = parseFieldsAndRelations(tempTable, line, tables, parserRelations);
+                foundCreateTable = parseFieldsAndRelations(tempTable, line, tables);
             }
 
         }
 
-        for (ParserRelation parserRelation : parserRelations) {
-            ForeignKey foreignKey = getForeignKey(parserRelation, tables);
-            Table table = parserUtilities.findTableByName(parserRelation.currentTableName, tables);
+        for (ParserRelation relation : relations) {
+            ForeignKey foreignKey = getForeignKey(relation, tables);
+            Table table = parserUtilities.findTableByName(relation.currentTableName, tables);
             table.addForeignKey(foreignKey);
         }
         for (Table table : tables) {
@@ -96,7 +98,7 @@ public class ParserService {
         return lines;
     }
 
-    private static boolean parseFieldsAndRelations(Table tempTable, String line, List<Table> tables, List<ParserRelation> parserRelations) {
+    private static boolean parseFieldsAndRelations(Table tempTable, String line, List<Table> tables) {
         if (containsSingleBracket(line)) {
             return true;
         }
@@ -107,8 +109,9 @@ public class ParserService {
         }
 
         if (isForeignKey(line)) {
-            parserRelations.add(new ParserRelation(line, tempTable.getName()));
-        } else if (isPrimaryKey(line)) {
+            String tableName = tempTable.getName();
+            addNewRelation(line, tableName);
+        } else if (isPrimaryKeyWithBracket(line)) {
             parsePrimaryKey(line, tempTable);
         } else {
             Field tempField = getField(line);
@@ -130,15 +133,18 @@ public class ParserService {
         return line.contains("FOREIGN KEY");
     }
 
-    private static boolean isPrimaryKey(String line) {
+    private static void addNewRelation(String line, String tableName) {
+        relations.add(new ParserRelation(line, tableName));
+    }
+
+    private static boolean isPrimaryKeyWithBracket(String line) {
         return line.contains("PRIMARY KEY (");
     }
 
     private static void parsePrimaryKey(String line, Table tempTable) {
-        line = ParserService.parserUtilities.removeBacktickSign(line);
-        String[] splittedLine = parserUtilities.splitBySpaceAndRemoveEmptyElements(line);
+        String[] lineInfo = parserUtilities.getLineInformationFrom(line);
 
-        String[] primaryKeys = splittedLine[TableConstant.PRIMARY_KEY_NAME.index].split(",");
+        String[] primaryKeys = lineInfo[TableConstant.PRIMARY_KEY_NAME.index].split(",");
         String[] primaryKeysWithoutSpecialSigns = removeAllSpecialSigns(primaryKeys);
 
         for (String primaryKey : primaryKeysWithoutSpecialSigns) {
@@ -161,20 +167,18 @@ public class ParserService {
         return primaryKeysWithoutSpecialSigns;
     }
 
-    private static ForeignKey getForeignKey(ParserRelation parserRelation, List<Table> tables) {
-
+    private static ForeignKey getForeignKey(ParserRelation relation, List<Table> tables) {
         boolean isOneToOne = false;
 
-
-        Table referencedTable = parserUtilities.findTableByName(parserRelation.getReferencedTableName(), tables);
-        Table currentTable = parserUtilities.findTableByName(parserRelation.getCurrentTableName(), tables);
+        Table referencedTable = parserUtilities.findTableByName(relation.getReferencedTableName(), tables);
+        Table currentTable = parserUtilities.findTableByName(relation.getCurrentTableName(), tables);
         if (referencedTable == null || currentTable == null) {
             logger.error("Referenced table not found");
             throw new IllegalFormatCodePointException(0);
         }
 
-        Field referencedField = parserUtilities.findFieldByName(parserRelation.referencedFieldName, referencedTable);
-        Field field = parserUtilities.findFieldByName(parserRelation.currentTableFieldName, currentTable);
+        Field referencedField = parserUtilities.findFieldByName(relation.referencedFieldName, referencedTable);
+        Field field = parserUtilities.findFieldByName(relation.currentTableFieldName, currentTable);
 
         if (referencedField == null || field == null) {
             logger.error("Referenced field not found");
@@ -184,40 +188,69 @@ public class ParserService {
             isOneToOne = true;
         }
         field.setForeignKey(true);
-        return new ForeignKey(parserRelation.getReferencedTableName(), isOneToOne, parserRelation.currentTableName);
+        return new ForeignKey(relation.getReferencedTableName(), isOneToOne, relation.currentTableName);
 
     }
 
     private static Field getField(String line) {
-        String fieldName;
-        String fieldType;
+        String[] lineInfo = parserUtilities.getLineInformationFrom(line);
+        Field field = new Field();
 
-        line = ParserService.parserUtilities.removeBacktickSign(line);
-        String[] splittedLine = parserUtilities.splitBySpaceAndRemoveEmptyElements(line);
-
-        if (splittedLine[0].contains("(")) {
-            fieldName = splittedLine[1];
-            fieldType = splittedLine[2].replace(",", "");
-
+        if (startsWithBracket(lineInfo)) {
+            setFieldParametersSkippingBracket(field, lineInfo);
         } else {
-            fieldName = splittedLine[0];
-            fieldType = splittedLine[1].replace(",", "");
+            setFieldParameters(field, lineInfo);
         }
 
-        Field tempField = new Field(fieldName, fieldType);
-        if (line.contains("PRIMARY KEY")) {
-            tempField.setPrimaryKey(true);
+        if (isPrimaryKey(line)) {
+            field.setPrimaryKey(true);
         }
-        if (line.contains("UNIQUE")) {
-            tempField.setUnique(true);
+        if (isUnique(line)) {
+            field.setUnique(true);
         }
-        return tempField;
+
+        return field;
     }
 
+    private static boolean startsWithBracket(String[] lineElements) {
+        return lineElements[0].contains("(");
+    }
+
+    private static void setFieldParametersSkippingBracket(Field field, String[] lineInfo) {
+        int indexNeededToSkipBracket = 1;
+
+        String fieldName = lineInfo[TableConstant.FIELD_NAME.index + indexNeededToSkipBracket];
+        String fieldType = removeComma(lineInfo[TableConstant.FIELD_TYPE.index + indexNeededToSkipBracket]);
+
+        field.setName(fieldName);
+        field.setType(fieldType);
+    }
+
+    private static void setFieldParameters(Field field, String[] lineInfo) {
+        String fieldName = lineInfo[TableConstant.FIELD_NAME.index];
+        String fieldType = removeComma(lineInfo[TableConstant.FIELD_TYPE.index]);
+
+        field.setName(fieldName);
+        field.setType(fieldType);
+    }
+
+    private static String removeComma(String element) {
+        return element.replace(",", "");
+    }
+
+    public static boolean isPrimaryKey(String line) {
+        return line.contains("PRIMARY KEY");
+    }
+
+    public static boolean isUnique(String line) {
+        return line.contains("UNIQUE");
+    }
 
     enum TableConstant {
         TABLE_NAME(2),
-        PRIMARY_KEY_NAME(2)
+        PRIMARY_KEY_NAME(2),
+        FIELD_NAME(0),
+        FIELD_TYPE(1)
         ;
 
         private int index;

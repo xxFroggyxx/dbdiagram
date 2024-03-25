@@ -21,16 +21,16 @@ public class ParserRelation {
 
     public ParserRelation(String line, String currentTableName) {
         this.currentTableName = currentTableName;
-        String[] splittedLine = parserUtilities.splitBySpaceAndRemoveEmptyElements(line);
+        String[] lineInfo = parserUtilities.getLineInformationFrom(line);
 
         if (line.contains("CONSTRAINT")) {
-            referencedFieldName = parserUtilities.removeSpecialSigns(splittedLine[7]);
-            currentTableFieldName = parserUtilities.removeSpecialSigns(splittedLine[4]);
-            referencedTableName = parserUtilities.removeSpecialSigns(splittedLine[6]);
+            referencedFieldName = parserUtilities.removeSpecialSigns(lineInfo[7]);
+            currentTableFieldName = parserUtilities.removeSpecialSigns(lineInfo[4]);
+            referencedTableName = parserUtilities.removeSpecialSigns(lineInfo[6]);
         } else {
-            referencedFieldName = parserUtilities.removeSpecialSigns(splittedLine[5]);
-            currentTableFieldName = parserUtilities.removeSpecialSigns(splittedLine[2]);
-            referencedTableName = parserUtilities.removeSpecialSigns(splittedLine[4]);
+            referencedFieldName = parserUtilities.removeSpecialSigns(lineInfo[5]);
+            currentTableFieldName = parserUtilities.removeSpecialSigns(lineInfo[2]);
+            referencedTableName = parserUtilities.removeSpecialSigns(lineInfo[4]);
         }
 
     }

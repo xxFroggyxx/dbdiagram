@@ -67,21 +67,25 @@ public class ParserUtilities {
                 .replace(specialSigns.CLOSE_BRACKET.getSign(), "")
                 .replace(specialSigns.BACKTICK.getSign(), "");
     }
+
+    public String[] getLineInformationFrom(String line) {
+        String lineWithoutBackticks = removeBacktickSign(line);
+        return splitBySpaceAndRemoveEmptyElements(lineWithoutBackticks);
+    }
+
+    private String removeBacktickSign(String line) {
+        return line.replace(specialSigns.BACKTICK.getSign(),"");
+    }
+
     /**
      * This method splits a string by space and removes empty elements.
      * @param line is a string that will be split
      * @return a string array
      */
-    public String[] splitBySpaceAndRemoveEmptyElements(String line) {
-//        line = line.replace(specialSigns.BACKTICK.getSign(),"");
-
+    private String[] splitBySpaceAndRemoveEmptyElements(String line) {
         return Arrays.stream(
                 line.split(specialSigns.SPACE.getSign()))
                 .filter(s -> !s.isEmpty())
                 .toArray(String[]::new);
-    }
-
-    public String removeBacktickSign(String line) {
-        return line.replace(specialSigns.BACKTICK.getSign(),"");
     }
 }
