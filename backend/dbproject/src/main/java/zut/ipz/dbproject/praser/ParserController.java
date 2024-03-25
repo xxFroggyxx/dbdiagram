@@ -23,6 +23,11 @@ import java.util.Objects;
 @RequestMapping(ApiConfiguration.API)
 @AllArgsConstructor
 public class ParserController {
+    private static final String FILE_NULL = "File is null";
+    private static final String FILE_EMPTY = "File is empty";
+    private static final String FILE_NOT_SQL = "File is not sql";
+    private static final String FILE_TOO_BIG = "File is too big";
+    private static final int FILE_SIZE_LIMIT = 10485760;
 
     private final Logger logger = LoggerFactory.getLogger(ParserController.class.getName());
 
@@ -68,20 +73,20 @@ public class ParserController {
     public ResponseEntity<String> parser(@RequestPart(name = "sqlFile") MultipartFile sqlFile) {
 
         if (sqlFile == null) {
-            logger.error("File is null");
-            return ResponseEntity.badRequest().body("File is null");
+            logger.error(FILE_NULL);
+            return ResponseEntity.badRequest().body(FILE_NULL);
         }
         if (sqlFile.isEmpty()) {
-            logger.error("File is empty");
-            return ResponseEntity.badRequest().body("File is empty");
+            logger.error(FILE_EMPTY);
+            return ResponseEntity.badRequest().body(FILE_EMPTY);
         }
         if (!Objects.requireNonNull(sqlFile.getOriginalFilename()).endsWith(".sql")) {
-            logger.error("File is not sql");
-            return ResponseEntity.badRequest().body("File is not sql");
+            logger.error(FILE_NOT_SQL);
+            return ResponseEntity.badRequest().body(FILE_NOT_SQL);
         }
-        if (sqlFile.getSize() > 10485760) {
-            logger.error("File is too big");
-            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body("File is too big");
+        if (sqlFile.getSize() > FILE_SIZE_LIMIT) {
+            logger.error(FILE_TOO_BIG);
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(FILE_TOO_BIG);
         }
         return ResponseEntity.ok().body(parserService.parse(sqlFile));
     }

@@ -72,9 +72,16 @@ public class ParserUtilities {
      * @param line is a string that will be split
      * @return a string array
      */
-    public String[] splitLine(String line) {
-        line = line.replace(specialSigns.BACKTICK.getSign(),"");
-        return Arrays.stream(line.split(specialSigns.SPACE.getSign())).filter(s -> !s.isEmpty()).toArray(String[]::new);
+    public String[] splitBySpaceAndRemoveEmptyElements(String line) {
+//        line = line.replace(specialSigns.BACKTICK.getSign(),"");
+
+        return Arrays.stream(
+                line.split(specialSigns.SPACE.getSign()))
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
     }
 
+    public String removeBacktickSign(String line) {
+        return line.replace(specialSigns.BACKTICK.getSign(),"");
+    }
 }
