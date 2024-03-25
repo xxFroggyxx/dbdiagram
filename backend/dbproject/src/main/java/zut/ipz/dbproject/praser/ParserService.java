@@ -194,29 +194,27 @@ public class ParserService {
 
     private static Field getField(String line) {
         String[] lineInfo = parserUtilities.getLineInformationFrom(line);
+
         Field field = new Field();
-
-        if (startsWithBracket(lineInfo)) {
-            setFieldParametersSkippingBracket(field, lineInfo);
-        } else {
-            setFieldParameters(field, lineInfo);
-        }
-
-        if (isPrimaryKey(line)) {
-            field.setPrimaryKey(true);
-        }
-        if (isUnique(line)) {
-            field.setUnique(true);
-        }
+        setNameAndType(field, lineInfo);
+        setConstrains(field, line);
 
         return field;
+    }
+
+    private static void setNameAndType(Field field, String[] lineInfo) {
+        if (startsWithBracket(lineInfo)) {
+            setParametersSkippingBracket(field, lineInfo);
+        } else {
+            setParameters(field, lineInfo);
+        }
     }
 
     private static boolean startsWithBracket(String[] lineElements) {
         return lineElements[0].contains("(");
     }
 
-    private static void setFieldParametersSkippingBracket(Field field, String[] lineInfo) {
+    private static void setParametersSkippingBracket(Field field, String[] lineInfo) {
         int indexNeededToSkipBracket = 1;
 
         String fieldName = lineInfo[TableConstant.FIELD_NAME.index + indexNeededToSkipBracket];
@@ -226,7 +224,7 @@ public class ParserService {
         field.setType(fieldType);
     }
 
-    private static void setFieldParameters(Field field, String[] lineInfo) {
+    private static void setParameters(Field field, String[] lineInfo) {
         String fieldName = lineInfo[TableConstant.FIELD_NAME.index];
         String fieldType = removeComma(lineInfo[TableConstant.FIELD_TYPE.index]);
 
@@ -236,6 +234,16 @@ public class ParserService {
 
     private static String removeComma(String element) {
         return element.replace(",", "");
+    }
+
+    private static void setConstrains(Field field, String line) {
+        if (isPrimaryKey(line)) {
+            field.setPrimaryKey(true);
+        }
+
+        if (isUnique(line)) {
+            field.setUnique(true);
+        }
     }
 
     public static boolean isPrimaryKey(String line) {
