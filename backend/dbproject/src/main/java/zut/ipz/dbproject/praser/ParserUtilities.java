@@ -48,12 +48,11 @@ public class ParserUtilities {
      * @param table is a table
      * @return a field
      */
-    public Field findFieldByName(String name, Table table) {
+    public Field findFieldInTableBy(Table table, String findBy) {
         return table.getFields().stream().
-                filter(field -> field.getName().equals(name
-                        .replace(specialSigns.OPEN_BRACKET.getSign(), "")
-                        .replace(specialSigns.CLOSE_BRACKET.getSign(), "")
-                        .replace(specialSigns.COMMA.getSign(), ""))).findFirst().orElse(null);
+                filter(field -> field.getName().equals(removeAllSpecialSigns(findBy)))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -61,11 +60,13 @@ public class ParserUtilities {
      * @param line is a string that will be changed
      * @return a string without special signs
      */
-    public String removeSpecialSigns(String line) {
-        return line.replace(specialSigns.COMMA.getSign(), "")
-                .replace(specialSigns.OPEN_BRACKET.getSign(), "")
-                .replace(specialSigns.CLOSE_BRACKET.getSign(), "")
-                .replace(specialSigns.BACKTICK.getSign(), "");
+    public String removeAllSpecialSigns(String line) {
+        line = removeCommaSign(line);
+        line = removeOpenBracketSign(line);
+        line = removeCloseBracketSign(line);
+        line = removeBacktickSign(line);
+
+        return line;
     }
 
     public String[] getLineInformationFrom(String line) {
@@ -73,8 +74,28 @@ public class ParserUtilities {
         return splitBySpaceAndRemoveEmptyElements(lineWithoutBackticks);
     }
 
+    private String removeCommaSign(String line) {
+        return line.replace(specialSigns.COMMA.getSign(),"");
+    }
+
+    private String removeOpenBracketSign(String line) {
+        return line.replace(specialSigns.OPEN_BRACKET.getSign(),"");
+    }
+
+    private String removeCloseBracketSign(String line) {
+        return line.replace(specialSigns.CLOSE_BRACKET.getSign(),"");
+    }
+
     private String removeBacktickSign(String line) {
         return line.replace(specialSigns.BACKTICK.getSign(),"");
+    }
+
+    public String[] splitByComma(String line) {
+        return line.split(specialSigns.COMMA.getSign());
+    }
+
+    public String[] splitBySpace(String line) {
+        return line.split(specialSigns.SPACE.getSign());
     }
 
     /**
@@ -83,8 +104,7 @@ public class ParserUtilities {
      * @return a string array
      */
     private String[] splitBySpaceAndRemoveEmptyElements(String line) {
-        return Arrays.stream(
-                line.split(specialSigns.SPACE.getSign()))
+        return Arrays.stream(splitBySpace(line))
                 .filter(s -> !s.isEmpty())
                 .toArray(String[]::new);
     }

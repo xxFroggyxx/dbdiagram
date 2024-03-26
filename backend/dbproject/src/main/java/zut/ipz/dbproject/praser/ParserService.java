@@ -5,13 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import zut.ipz.dbproject.file.FileUtils;
 import zut.ipz.dbproject.table.Field;
 import zut.ipz.dbproject.table.ForeignKey;
 import zut.ipz.dbproject.table.Table;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.IllegalFormatCodePointException;
 import java.util.List;
@@ -27,6 +25,8 @@ public class ParserService {
     private static final ParserUtilities parserUtilities = new ParserUtilities();
     private static final Logger logger = LoggerFactory.getLogger(ParserService.class.getName());
     private static List<ParserRelation> relations = new ArrayList<>();
+    private static List<Table> tables = new ArrayList<>();
+    private static boolean foundBeginningOfTable = false;
 
     /**
      * This method parses a string.
@@ -35,34 +35,19 @@ public class ParserService {
      * @return a string for mermaid.js
      * @see "https://mermaid.js.org/syntax/entityRelationshipDiagram.html"
      */
-
-
     public String parse(MultipartFile sqlFile) {
         relations = new ArrayList<>();
+        tables = new ArrayList<>();
+        foundBeginningOfTable = false;
 
         StringBuilder output = new StringBuilder();
         output.append("erDiagram\n");
-        List<String> lines = getLines(sqlFile);
-        boolean foundCreateTable = false;
-        List<Table> tables = new ArrayList<>();
-        Table tempTable = null;
+        List<String> lines = FileUtils.getLines(sqlFile);
 
-        for (String line : lines) {
-            line = line.trim();
-            if (line.contains("CREATE TABLE")) {
-                foundCreateTable = true;
-                String[] lineInfo = parserUtilities.getLineInformationFrom(line);
-                tempTable = new Table(lineInfo[TableConstant.TABLE_NAME.index]);
-                continue;
-            }
-            if (foundCreateTable) {
-                foundCreateTable = parseFieldsAndRelations(tempTable, line, tables);
-            }
-
-        }
+        createTablesFromLines(lines);
 
         for (ParserRelation relation : relations) {
-            ForeignKey foreignKey = getForeignKey(relation, tables);
+            ForeignKey foreignKey = getForeignKey(relation);
             Table table = parserUtilities.findTableByName(relation.currentTableName, tables);
             table.addForeignKey(foreignKey);
         }
@@ -73,49 +58,56 @@ public class ParserService {
         return output.toString();
     }
 
-    /**
-     * This method reads a file and returns a list of strings.
-     *
-     * @param sqlFile is a file that will be read
-     * @return a list of strings
-     */
-    private static List<String> getLines(MultipartFile sqlFile) {
-        List<String> lines;
-        try (var br = new BufferedReader(new InputStreamReader(sqlFile.getInputStream()))) {
-            lines = br.lines().toList();
+    private static void createTablesFromLines(List<String> lines) {
+        Table table = null;
 
-        } catch (IOException e) {
-            throw new IllegalFormatCodePointException(2);
+        for (String line : lines) {
+            line = line.trim();
+
+            if (isBeginningOfTable(line)) {
+                table = createTableFrom(line);
+                continue;
+            }
+
+            if (foundBeginningOfTable) {
+                parseUntilEndOfTable(table, line);
+            }
         }
-
-//        List<String> lines = null;
-//        try (Stream<String> streamLines = Files.lines(Path.of(sqlFile.getName()))) {
-//            lines = streamLines.toList();
-//        } catch (IOException e) {
-//            System.err.println(e.getMessage());
-//        }
-
-        return lines;
     }
 
-    private static boolean parseFieldsAndRelations(Table tempTable, String line, List<Table> tables) {
+    private static boolean isBeginningOfTable(String line) {
+        return line.contains("CREATE TABLE");
+    }
+
+    private static Table createTableFrom(String line) {
+        foundBeginningOfTable = true;
+        String[] lineInfo = parserUtilities.getLineInformationFrom(line);
+
+        return new Table(lineInfo[TableConstant.TABLE_NAME.index]);
+    }
+
+    private static void parseUntilEndOfTable(Table table, String line) {
+        foundBeginningOfTable = parseFieldsAndRelations(table, line);
+    }
+
+    private static boolean parseFieldsAndRelations(Table table, String line) {
         if (containsSingleBracket(line)) {
             return true;
         }
 
         if (isEndOfTable(line)) {
-            tables.add(tempTable);
+            tables.add(table);
             return false;
         }
 
         if (isForeignKey(line)) {
-            String tableName = tempTable.getName();
+            String tableName = table.getName();
             addNewRelation(line, tableName);
         } else if (isPrimaryKeyWithBracket(line)) {
-            parsePrimaryKey(line, tempTable);
+            parsePrimaryKey(line, table);
         } else {
             Field tempField = getField(line);
-            tempTable.addField(tempField);
+            table.addField(tempField);
         }
 
         return true;
@@ -141,14 +133,12 @@ public class ParserService {
         return line.contains("PRIMARY KEY (");
     }
 
-    private static void parsePrimaryKey(String line, Table tempTable) {
-        String[] lineInfo = parserUtilities.getLineInformationFrom(line);
-
-        String[] primaryKeys = lineInfo[TableConstant.PRIMARY_KEY_NAME.index].split(",");
+    private static void parsePrimaryKey(String line, Table table) {
+        String[] primaryKeys = getPrimaryKeysFromLine(line);
         String[] primaryKeysWithoutSpecialSigns = removeAllSpecialSigns(primaryKeys);
 
         for (String primaryKey : primaryKeysWithoutSpecialSigns) {
-            Field field = parserUtilities.findFieldByName(primaryKey, tempTable);
+            Field field = parserUtilities.findFieldInTableBy(table, primaryKey);
             if (field == null) {
                 logger.error("Primary key not found");
                 throw new IllegalFormatCodePointException(1);
@@ -157,17 +147,26 @@ public class ParserService {
         }
     }
 
+    private static String[] getPrimaryKeysFromLine(String line) {
+        String[] lineInfo = parserUtilities.getLineInformationFrom(line);
+
+        String lineOfPrimaryKeys = lineInfo[TableConstant.PRIMARY_KEY_NAME.index];
+        String[] primaryKeys = parserUtilities.splitByComma(lineOfPrimaryKeys);
+
+        return primaryKeys;
+    }
+
     private static String[] removeAllSpecialSigns(String[] primaryKeys) {
         String[] primaryKeysWithoutSpecialSigns = new String[primaryKeys.length];
 
         for (int i = 0; i < primaryKeys.length; i++) {
-            primaryKeysWithoutSpecialSigns[i] = parserUtilities.removeSpecialSigns(primaryKeys[i]);
+            primaryKeysWithoutSpecialSigns[i] = parserUtilities.removeAllSpecialSigns(primaryKeys[i]);
         }
 
         return primaryKeysWithoutSpecialSigns;
     }
 
-    private static ForeignKey getForeignKey(ParserRelation relation, List<Table> tables) {
+    private static ForeignKey getForeignKey(ParserRelation relation) {
         boolean isOneToOne = false;
 
         Table referencedTable = parserUtilities.findTableByName(relation.getReferencedTableName(), tables);
@@ -177,8 +176,8 @@ public class ParserService {
             throw new IllegalFormatCodePointException(0);
         }
 
-        Field referencedField = parserUtilities.findFieldByName(relation.referencedFieldName, referencedTable);
-        Field field = parserUtilities.findFieldByName(relation.currentTableFieldName, currentTable);
+        Field referencedField = parserUtilities.findFieldInTableBy(referencedTable, relation.referencedFieldName);
+        Field field = parserUtilities.findFieldInTableBy(currentTable, relation.currentTableFieldName);
 
         if (referencedField == null || field == null) {
             logger.error("Referenced field not found");
@@ -220,20 +219,23 @@ public class ParserService {
         String fieldName = lineInfo[TableConstant.FIELD_NAME.index + indexNeededToSkipBracket];
         String fieldType = removeComma(lineInfo[TableConstant.FIELD_TYPE.index + indexNeededToSkipBracket]);
 
-        field.setName(fieldName);
-        field.setType(fieldType);
+        setNameAndTypeToField(fieldName, fieldType, field);
     }
 
     private static void setParameters(Field field, String[] lineInfo) {
         String fieldName = lineInfo[TableConstant.FIELD_NAME.index];
         String fieldType = removeComma(lineInfo[TableConstant.FIELD_TYPE.index]);
 
-        field.setName(fieldName);
-        field.setType(fieldType);
+        setNameAndTypeToField(fieldName, fieldType, field);
     }
 
     private static String removeComma(String element) {
         return element.replace(",", "");
+    }
+
+    private static void setNameAndTypeToField(String fieldName, String fieldType, Field field) {
+        field.setName(fieldName);
+        field.setType(fieldType);
     }
 
     private static void setConstrains(Field field, String line) {
@@ -261,7 +263,7 @@ public class ParserService {
         FIELD_TYPE(1)
         ;
 
-        private int index;
+        private final int index;
 
         TableConstant(int index) {
             this.index = index;

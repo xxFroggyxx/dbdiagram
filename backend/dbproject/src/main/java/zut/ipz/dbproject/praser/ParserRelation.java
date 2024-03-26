@@ -24,13 +24,13 @@ public class ParserRelation {
         String[] lineInfo = parserUtilities.getLineInformationFrom(line);
 
         if (line.contains("CONSTRAINT")) {
-            referencedFieldName = parserUtilities.removeSpecialSigns(lineInfo[7]);
-            currentTableFieldName = parserUtilities.removeSpecialSigns(lineInfo[4]);
-            referencedTableName = parserUtilities.removeSpecialSigns(lineInfo[6]);
+            referencedFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[7]);
+            currentTableFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[4]);
+            referencedTableName = parserUtilities.removeAllSpecialSigns(lineInfo[6]);
         } else {
-            referencedFieldName = parserUtilities.removeSpecialSigns(lineInfo[5]);
-            currentTableFieldName = parserUtilities.removeSpecialSigns(lineInfo[2]);
-            referencedTableName = parserUtilities.removeSpecialSigns(lineInfo[4]);
+            referencedFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[5]);
+            currentTableFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[2]);
+            referencedTableName = parserUtilities.removeAllSpecialSigns(lineInfo[4]);
         }
 
     }
