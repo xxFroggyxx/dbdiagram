@@ -11,11 +11,11 @@ import org.springframework.stereotype.Component;
 @Component
 @Getter
 public class ParserRelation {
-    String referencedFieldName;
-    String currentTableFieldName;
-    String referencedTableName;
-    String currentTableName;
-    String relationLine;
+    private String referencedFieldName;
+    private String currentTableFieldName;
+    private String referencedTableName;
+    private String currentTableName;
+    private String relationLine;
 
     private static final ParserUtilities parserUtilities = new ParserUtilities();
 

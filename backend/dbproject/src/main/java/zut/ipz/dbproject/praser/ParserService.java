@@ -27,6 +27,7 @@ public class ParserService {
     private static List<ParserRelation> relations = new ArrayList<>();
     private static List<Table> tables = new ArrayList<>();
     private static boolean existingTable = false;
+    private static StringBuilder output = new StringBuilder();
 
     /**
      * This method parses a string.
@@ -38,20 +39,11 @@ public class ParserService {
     public String parse(MultipartFile sqlFile) {
         cleanBeforeNextSqlData();
 
-        StringBuilder output = new StringBuilder();
-        output.append("erDiagram\n");
         List<String> lines = FileUtils.getLines(sqlFile);
 
         createTablesFromLines(lines);
-
-        for (ParserRelation relation : relations) {
-            ForeignKey foreignKey = getForeignKey(relation);
-            Table table = parserUtilities.findTableByName(relation.currentTableName, tables);
-            table.addForeignKey(foreignKey);
-        }
-        for (Table table : tables) {
-            output.append(table.toString());
-        }
+        addForeignKeysToTables();
+        addAllTablesToOutput();
 
         return output.toString();
     }
@@ -60,6 +52,7 @@ public class ParserService {
         relations = new ArrayList<>();
         tables = new ArrayList<>();
         existingTable = false;
+        output = new StringBuilder().append("erDiagram\n");
     }
 
     private static void createTablesFromLines(List<String> lines) {
@@ -111,7 +104,7 @@ public class ParserService {
         } else if (isPrimaryKeyWithBracket(line)) {
             parsePrimaryKey(line, table);
         } else {
-            Field tempField = getField(line);
+            Field tempField = createField(line);
             table.addField(tempField);
         }
 
@@ -180,7 +173,7 @@ public class ParserService {
     private static boolean fieldNotExists(Field field) {
         return field == null;
     }
-    private static Field getField(String line) {
+    private static Field createField(String line) {
         String[] lineInfo = parserUtilities.getLineInformationFrom(line);
 
         Field field = new Field();
@@ -245,31 +238,65 @@ public class ParserService {
         return line.contains("UNIQUE");
     }
 
-    private static ForeignKey getForeignKey(ParserRelation relation) {
-        boolean isOneToOne = false;
-
-        Table referencedTable = parserUtilities.findTableByName(relation.getReferencedTableName(), tables);
-        Table currentTable = parserUtilities.findTableByName(relation.getCurrentTableName(), tables);
-        if (referencedTable == null || currentTable == null) {
-            loggerError("Referenced field not found", 0);
+    private static void addForeignKeysToTables() {
+        for (ParserRelation relation : relations) {
+            addForeignKeyToTable(relation);
         }
+    }
 
-        Field referencedField = parserUtilities.findFieldInTableBy(referencedTable, relation.referencedFieldName);
-        Field field = parserUtilities.findFieldInTableBy(currentTable, relation.currentTableFieldName);
+    private static void addForeignKeyToTable(ParserRelation relation) {
+        ForeignKey foreignKey = createForeignKey(relation);
+        Table table = parserUtilities.findTableByName(tables, relation.getCurrentTableName());
+        table.addForeignKey(foreignKey);
+    }
 
-        if (referencedField == null || field == null) {
+    private static ForeignKey createForeignKey(ParserRelation relation) {
+        Table referencedTable = parserUtilities.findTableByName(tables, relation.getReferencedTableName());
+        Table currentTable = parserUtilities.findTableByName(tables, relation.getCurrentTableName());
+        notNullOrLogError(referencedTable);
+        notNullOrLogError(currentTable);
+
+        Field referencedField = parserUtilities.findFieldInTableBy(referencedTable, relation.getReferencedFieldName());
+        Field currentField = parserUtilities.findFieldInTableBy(currentTable, relation.getCurrentTableFieldName());
+        notNullOrLogError(referencedField);
+        notNullOrLogError(currentField);
+
+        boolean isOneToOne = isOneToOneRelation(currentField, referencedField);
+
+        setForeignKeyInCurrentField(currentField);
+
+        return new ForeignKey(relation.getReferencedTableName(), isOneToOne, relation.getCurrentTableName());
+    }
+
+    private static void notNullOrLogError(Table table) {
+        if (table == null) {
+            loggerError("Referenced table not found", 0);
+        }
+    }
+
+    private static void notNullOrLogError(Field field) {
+        if (field == null) {
             loggerError("Referenced field not found", 1);
         }
-        if (referencedField.isPrimaryKey() && field.isPrimaryKey()) {
-            isOneToOne = true;
-        }
+    }
+
+    private static boolean isOneToOneRelation(Field currentField, Field referencedField) {
+        return currentField.isPrimaryKey() && referencedField.isPrimaryKey();
+    }
+
+    private static void setForeignKeyInCurrentField(Field field) {
         field.setForeignKey(true);
-        return new ForeignKey(relation.getReferencedTableName(), isOneToOne, relation.currentTableName);
     }
 
     private static void loggerError(String message, int errorCode) {
         logger.error(message);
         throw new IllegalFormatCodePointException(errorCode);
+    }
+
+    private static void addAllTablesToOutput() {
+        for (Table table : tables) {
+            output.append(table.toString());
+        }
     }
 
     enum TableConstant {

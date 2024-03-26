@@ -36,7 +36,7 @@ public class ParserUtilities {
      * @param tables is a list of tables
      * @return a table
      */
-    public Table findTableByName(String name, List<Table> tables) {
+    public Table findTableByName(List<Table> tables, String name) {
         return tables.stream().
                 filter(table -> table.equalsToName(name)).findFirst().orElse(null);
     }
