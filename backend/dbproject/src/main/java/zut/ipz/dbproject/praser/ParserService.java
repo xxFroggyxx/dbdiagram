@@ -26,7 +26,7 @@ public class ParserService {
     private static final Logger logger = LoggerFactory.getLogger(ParserService.class.getName());
     private static List<ParserRelation> relations = new ArrayList<>();
     private static List<Table> tables = new ArrayList<>();
-    private static boolean foundBeginningOfTable = false;
+    private static boolean existingTable = false;
 
     /**
      * This method parses a string.
@@ -59,7 +59,7 @@ public class ParserService {
     private static void cleanBeforeNextSqlData() {
         relations = new ArrayList<>();
         tables = new ArrayList<>();
-        foundBeginningOfTable = false;
+        existingTable = false;
     }
 
     private static void createTablesFromLines(List<String> lines) {
@@ -73,8 +73,8 @@ public class ParserService {
                 continue;
             }
 
-            if (foundBeginningOfTable) {
-                parseUntilEndOfTable(table, line);
+            if (existingTable) {
+                parseUntilTableExists(table, line);
             }
         }
     }
@@ -84,14 +84,15 @@ public class ParserService {
     }
 
     private static Table createTableFrom(String line) {
-        foundBeginningOfTable = true;
+        existingTable = true;
         String[] lineInfo = parserUtilities.getLineInformationFrom(line);
 
         return new Table(lineInfo[TableConstant.TABLE_NAME.index]);
     }
 
-    private static void parseUntilEndOfTable(Table table, String line) {
-        foundBeginningOfTable = parseFieldsAndRelations(table, line);
+    private static void parseUntilTableExists(Table table, String line) {
+        boolean tableExists = parseFieldsAndRelations(table, line);
+        existingTable = tableExists;
     }
 
     private static boolean parseFieldsAndRelations(Table table, String line) {
