@@ -22,6 +22,11 @@ public class Field {
         this.name = name;
         this.type = type;
     }
+
+    public boolean equalsToName(String name) {
+        return this.name.equals(name);
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();

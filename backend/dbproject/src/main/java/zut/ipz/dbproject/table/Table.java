@@ -17,6 +17,9 @@ public class Table {
     private List<Field> fields;
     private List<ForeignKey> foreignKeys;
 
+    public boolean equalsToName(String name) {
+        return this.name.equals(name);
+    }
 
     @Override
     public String toString() {

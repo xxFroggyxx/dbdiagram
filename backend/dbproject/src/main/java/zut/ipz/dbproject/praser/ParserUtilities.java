@@ -38,19 +38,21 @@ public class ParserUtilities {
      */
     public Table findTableByName(String name, List<Table> tables) {
         return tables.stream().
-                filter(table -> table.getName().equals(name)).findFirst().orElse(null);
+                filter(table -> table.equalsToName(name)).findFirst().orElse(null);
     }
 
     /**
      * This method finds a field by name.
      *
-     * @param name  is a name of the field
+     * @param findBy is a name of the field
      * @param table is a table
      * @return a field
      */
     public Field findFieldInTableBy(Table table, String findBy) {
+        String name = removeAllSpecialSigns(findBy);
+
         return table.getFields().stream().
-                filter(field -> field.getName().equals(removeAllSpecialSigns(findBy)))
+                filter(field -> field.equalsToName(name))
                 .findFirst()
                 .orElse(null);
     }

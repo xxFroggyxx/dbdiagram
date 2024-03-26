@@ -36,9 +36,7 @@ public class ParserService {
      * @see "https://mermaid.js.org/syntax/entityRelationshipDiagram.html"
      */
     public String parse(MultipartFile sqlFile) {
-        relations = new ArrayList<>();
-        tables = new ArrayList<>();
-        foundBeginningOfTable = false;
+        cleanBeforeNextSqlData();
 
         StringBuilder output = new StringBuilder();
         output.append("erDiagram\n");
@@ -56,6 +54,12 @@ public class ParserService {
         }
 
         return output.toString();
+    }
+
+    private static void cleanBeforeNextSqlData() {
+        relations = new ArrayList<>();
+        tables = new ArrayList<>();
+        foundBeginningOfTable = false;
     }
 
     private static void createTablesFromLines(List<String> lines) {
@@ -138,11 +142,7 @@ public class ParserService {
         String[] primaryKeysWithoutSpecialSigns = removeAllSpecialSigns(primaryKeys);
 
         for (String primaryKey : primaryKeysWithoutSpecialSigns) {
-            Field field = parserUtilities.findFieldInTableBy(table, primaryKey);
-            if (field == null) {
-                logger.error("Primary key not found");
-                throw new IllegalFormatCodePointException(1);
-            }
+            Field field = findField(table, primaryKey);
             field.setPrimaryKey(true);
         }
     }
@@ -166,31 +166,19 @@ public class ParserService {
         return primaryKeysWithoutSpecialSigns;
     }
 
-    private static ForeignKey getForeignKey(ParserRelation relation) {
-        boolean isOneToOne = false;
+    private static Field findField(Table table, String primaryKey) {
+        Field field = parserUtilities.findFieldInTableBy(table, primaryKey);
 
-        Table referencedTable = parserUtilities.findTableByName(relation.getReferencedTableName(), tables);
-        Table currentTable = parserUtilities.findTableByName(relation.getCurrentTableName(), tables);
-        if (referencedTable == null || currentTable == null) {
-            logger.error("Referenced table not found");
-            throw new IllegalFormatCodePointException(0);
+        if (fieldNotExists(field)) {
+            loggerError("Primary key not found", 1);
         }
 
-        Field referencedField = parserUtilities.findFieldInTableBy(referencedTable, relation.referencedFieldName);
-        Field field = parserUtilities.findFieldInTableBy(currentTable, relation.currentTableFieldName);
-
-        if (referencedField == null || field == null) {
-            logger.error("Referenced field not found");
-            throw new IllegalFormatCodePointException(1);
-        }
-        if (referencedField.isPrimaryKey() && field.isPrimaryKey()) {
-            isOneToOne = true;
-        }
-        field.setForeignKey(true);
-        return new ForeignKey(relation.getReferencedTableName(), isOneToOne, relation.currentTableName);
-
+        return field;
     }
 
+    private static boolean fieldNotExists(Field field) {
+        return field == null;
+    }
     private static Field getField(String line) {
         String[] lineInfo = parserUtilities.getLineInformationFrom(line);
 
@@ -254,6 +242,33 @@ public class ParserService {
 
     public static boolean isUnique(String line) {
         return line.contains("UNIQUE");
+    }
+
+    private static ForeignKey getForeignKey(ParserRelation relation) {
+        boolean isOneToOne = false;
+
+        Table referencedTable = parserUtilities.findTableByName(relation.getReferencedTableName(), tables);
+        Table currentTable = parserUtilities.findTableByName(relation.getCurrentTableName(), tables);
+        if (referencedTable == null || currentTable == null) {
+            loggerError("Referenced field not found", 0);
+        }
+
+        Field referencedField = parserUtilities.findFieldInTableBy(referencedTable, relation.referencedFieldName);
+        Field field = parserUtilities.findFieldInTableBy(currentTable, relation.currentTableFieldName);
+
+        if (referencedField == null || field == null) {
+            loggerError("Referenced field not found", 1);
+        }
+        if (referencedField.isPrimaryKey() && field.isPrimaryKey()) {
+            isOneToOne = true;
+        }
+        field.setForeignKey(true);
+        return new ForeignKey(relation.getReferencedTableName(), isOneToOne, relation.currentTableName);
+    }
+
+    private static void loggerError(String message, int errorCode) {
+        logger.error(message);
+        throw new IllegalFormatCodePointException(errorCode);
     }
 
     enum TableConstant {
