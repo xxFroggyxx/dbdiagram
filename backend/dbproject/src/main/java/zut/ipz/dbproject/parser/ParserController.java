@@ -71,23 +71,48 @@ public class ParserController {
      */
     @PostMapping(ApiConfiguration.PARSER)
     public ResponseEntity<String> parser(@RequestPart(name = "sqlFile") MultipartFile sqlFile) {
+        ResponseEntity<String> response;
 
-        if (sqlFile == null) {
-            logger.error(FILE_NULL);
-            return ResponseEntity.badRequest().body(FILE_NULL);
+        if (sqlFileIsNull(sqlFile)) {
+            response = logErrorAndReturnBadRequestStatus(FILE_NULL);
+        } else if (sqlFileIsEmpty(sqlFile)) {
+            response = logErrorAndReturnBadRequestStatus(FILE_EMPTY);
+        } else if (isNotSqlFile(sqlFile)) {
+            response = logErrorAndReturnBadRequestStatus(FILE_NOT_SQL);
+        } else if (sqlFileExceedsSize(sqlFile)) {
+            response = logErrorAndReturnPayloadTooLargeStatus(FILE_TOO_BIG);
+        } else {
+            response = ResponseEntity.ok().body(parserService.parse(sqlFile));
         }
-        if (sqlFile.isEmpty()) {
-            logger.error(FILE_EMPTY);
-            return ResponseEntity.badRequest().body(FILE_EMPTY);
-        }
-        if (!Objects.requireNonNull(sqlFile.getOriginalFilename()).endsWith(".sql")) {
-            logger.error(FILE_NOT_SQL);
-            return ResponseEntity.badRequest().body(FILE_NOT_SQL);
-        }
-        if (sqlFile.getSize() > FILE_SIZE_LIMIT) {
-            logger.error(FILE_TOO_BIG);
-            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(FILE_TOO_BIG);
-        }
-        return ResponseEntity.ok().body(parserService.parse(sqlFile));
+
+        return response;
+    }
+
+    private ResponseEntity<String> logErrorAndReturnBadRequestStatus(String message) {
+        logger.error(message);
+        return ResponseEntity.badRequest().body(message);
+    }
+
+    private ResponseEntity<String> logErrorAndReturnPayloadTooLargeStatus(String message) {
+        logger.error(message);
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(message);
+    }
+
+    private boolean sqlFileIsNull(MultipartFile sqlFile) {
+        return sqlFile == null;
+    }
+
+    private boolean sqlFileIsEmpty(MultipartFile sqlFile) {
+        return sqlFile.isEmpty();
+    }
+
+    private boolean isNotSqlFile(MultipartFile sqlFile) {
+        String fileName = sqlFile.getOriginalFilename();
+
+        return !Objects.requireNonNull(fileName).endsWith(".sql");
+    }
+
+    private boolean sqlFileExceedsSize(MultipartFile sqlFile) {
+        return sqlFile.getSize() > FILE_SIZE_LIMIT;
     }
 }
