@@ -60,11 +60,13 @@ export const UploadFile = () => {
 					>
 						<input {...getInputProps()} />
 						{loading ? (
-							<p className='text-white'>Ładowanie...</p>
+							<p className='text-lg font-bold text-sky-500'>Ładowanie...</p>
 						) : isDragActive ? (
-							<p className='text-white'>Upuść pliki tutaj...</p>
+							<p className='text-lg font-bold text-sky-500'>
+								Upuść pliki tutaj...
+							</p>
 						) : (
-							<p className=' text-lg font-bold text-sky-500 dark:text-sky-700'>
+							<p className='text-lg font-bold text-sky-500 dark:text-sky-700'>
 								Przeciągnij i upuść pliki tutaj, lub kliknij, aby wybrać pliki
 							</p>
 						)}
