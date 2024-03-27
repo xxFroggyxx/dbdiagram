@@ -1,4 +1,4 @@
-package zut.ipz.dbproject.praser;
+package zut.ipz.dbproject.parser;
 
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -29,25 +29,12 @@ public class ParserUtilities {
         }
 
     }
-/**
-     * This method finds a table by name.
-     *
-     * @param name   is a name of the table
-     * @param tables is a list of tables
-     * @return a table
-     */
+
     public Table findTableByName(List<Table> tables, String name) {
         return tables.stream().
                 filter(table -> table.equalsToName(name)).findFirst().orElse(null);
     }
 
-    /**
-     * This method finds a field by name.
-     *
-     * @param findBy is a name of the field
-     * @param table is a table
-     * @return a field
-     */
     public Field findFieldInTableBy(Table table, String findBy) {
         String name = removeAllSpecialSigns(findBy);
 
@@ -57,11 +44,6 @@ public class ParserUtilities {
                 .orElse(null);
     }
 
-    /**
-     * This method removes special signs from a string.
-     * @param line is a string that will be changed
-     * @return a string without special signs
-     */
     public String removeAllSpecialSigns(String line) {
         line = removeCommaSign(line);
         line = removeOpenBracketSign(line);
@@ -74,6 +56,12 @@ public class ParserUtilities {
     public String[] getLineInformationFrom(String line) {
         String lineWithoutBackticks = removeBacktickSign(line);
         return splitBySpaceAndRemoveEmptyElements(lineWithoutBackticks);
+    }
+
+    private String[] splitBySpaceAndRemoveEmptyElements(String line) {
+        return Arrays.stream(splitBySpace(line))
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
     }
 
     private String removeCommaSign(String line) {
@@ -98,16 +86,5 @@ public class ParserUtilities {
 
     public String[] splitBySpace(String line) {
         return line.split(specialSigns.SPACE.getSign());
-    }
-
-    /**
-     * This method splits a string by space and removes empty elements.
-     * @param line is a string that will be split
-     * @return a string array
-     */
-    private String[] splitBySpaceAndRemoveEmptyElements(String line) {
-        return Arrays.stream(splitBySpace(line))
-                .filter(s -> !s.isEmpty())
-                .toArray(String[]::new);
     }
 }

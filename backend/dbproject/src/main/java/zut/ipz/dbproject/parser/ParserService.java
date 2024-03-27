@@ -1,6 +1,7 @@
-package zut.ipz.dbproject.praser;
+package zut.ipz.dbproject.parser;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -80,7 +81,7 @@ public class ParserService {
         existingTable = true;
         String[] lineInfo = parserUtilities.getLineInformationFrom(line);
 
-        return new Table(lineInfo[TableConstant.TABLE_NAME.index]);
+        return new Table(lineInfo[TableConstant.TABLE_NAME.getIndex()]);
     }
 
     private static void parseUntilTableExists(Table table, String line) {
@@ -94,13 +95,13 @@ public class ParserService {
         }
 
         if (isEndOfTable(line)) {
-            tables.add(table);
+            addNewTable(table);
             return false;
         }
 
         if (isForeignKey(line)) {
             String tableName = table.getName();
-            addNewRelation(line, tableName);
+            addNewRelation(tableName, line);
         } else if (isPrimaryKeyWithBracket(line)) {
             parsePrimaryKey(line, table);
         } else {
@@ -119,12 +120,16 @@ public class ParserService {
         return line.contains(")") && line.contains(";");
     }
 
+    private static void addNewTable(Table table) {
+        tables.add(table);
+    }
+
     private static boolean isForeignKey(String line) {
         return line.contains("FOREIGN KEY");
     }
 
-    private static void addNewRelation(String line, String tableName) {
-        relations.add(new ParserRelation(line, tableName));
+    private static void addNewRelation(String tableName, String line) {
+        relations.add(new ParserRelation(tableName, line));
     }
 
     private static boolean isPrimaryKeyWithBracket(String line) {
@@ -144,7 +149,7 @@ public class ParserService {
     private static String[] getPrimaryKeysFromLine(String line) {
         String[] lineInfo = parserUtilities.getLineInformationFrom(line);
 
-        String lineOfPrimaryKeys = lineInfo[TableConstant.PRIMARY_KEY_NAME.index];
+        String lineOfPrimaryKeys = lineInfo[TableConstant.PRIMARY_KEY_NAME.getIndex()];
         String[] primaryKeys = parserUtilities.splitByComma(lineOfPrimaryKeys);
 
         return primaryKeys;
@@ -173,6 +178,7 @@ public class ParserService {
     private static boolean fieldNotExists(Field field) {
         return field == null;
     }
+
     private static Field createField(String line) {
         String[] lineInfo = parserUtilities.getLineInformationFrom(line);
 
@@ -198,15 +204,15 @@ public class ParserService {
     private static void setParametersSkippingBracket(Field field, String[] lineInfo) {
         int indexNeededToSkipBracket = 1;
 
-        String fieldName = lineInfo[TableConstant.FIELD_NAME.index + indexNeededToSkipBracket];
-        String fieldType = removeComma(lineInfo[TableConstant.FIELD_TYPE.index + indexNeededToSkipBracket]);
+        String fieldName = lineInfo[TableConstant.FIELD_NAME.getIndex() + indexNeededToSkipBracket];
+        String fieldType = removeComma(lineInfo[TableConstant.FIELD_TYPE.getIndex() + indexNeededToSkipBracket]);
 
         setNameAndTypeToField(fieldName, fieldType, field);
     }
 
     private static void setParameters(Field field, String[] lineInfo) {
-        String fieldName = lineInfo[TableConstant.FIELD_NAME.index];
-        String fieldType = removeComma(lineInfo[TableConstant.FIELD_TYPE.index]);
+        String fieldName = lineInfo[TableConstant.FIELD_NAME.getIndex()];
+        String fieldType = removeComma(lineInfo[TableConstant.FIELD_TYPE.getIndex()]);
 
         setNameAndTypeToField(fieldName, fieldType, field);
     }
@@ -257,7 +263,7 @@ public class ParserService {
         notNullOrLogError(currentTable);
 
         Field referencedField = parserUtilities.findFieldInTableBy(referencedTable, relation.getReferencedFieldName());
-        Field currentField = parserUtilities.findFieldInTableBy(currentTable, relation.getCurrentTableFieldName());
+        Field currentField = parserUtilities.findFieldInTableBy(currentTable, relation.getCurrentFieldName());
         notNullOrLogError(referencedField);
         notNullOrLogError(currentField);
 
@@ -299,6 +305,7 @@ public class ParserService {
         }
     }
 
+    @Getter
     enum TableConstant {
         TABLE_NAME(2),
         PRIMARY_KEY_NAME(2),

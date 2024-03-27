@@ -1,4 +1,4 @@
-package zut.ipz.dbproject.praser;
+package zut.ipz.dbproject.parser;
 
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
