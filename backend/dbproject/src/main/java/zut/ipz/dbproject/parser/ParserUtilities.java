@@ -1,6 +1,5 @@
 package zut.ipz.dbproject.parser;
 
-import lombok.Getter;
 import org.springframework.stereotype.Component;
 import zut.ipz.dbproject.table.Field;
 import zut.ipz.dbproject.table.Table;
@@ -8,28 +7,14 @@ import zut.ipz.dbproject.table.Table;
 import java.util.Arrays;
 import java.util.List;
 
+import static zut.ipz.dbproject.constant.SpecialSign.*;
+
 /**
  * This class contains methods that are used in ParserService.
  *
  */
 @Component
 public class ParserUtilities {
-
-    @Getter
-    private enum specialSigns {
-        COMMA(","),
-        OPEN_BRACKET("("),
-        CLOSE_BRACKET(")"),
-        BACKTICK("`"),
-        SPACE(" ");
-        private final String sign;
-
-        specialSigns(String sign) {
-            this.sign = sign;
-        }
-
-    }
-
     public Table findTableByName(List<Table> tables, String name) {
         return tables.stream().
                 filter(table -> table.equalsToName(name)).findFirst().orElse(null);
@@ -44,15 +29,6 @@ public class ParserUtilities {
                 .orElse(null);
     }
 
-    public String removeAllSpecialSigns(String line) {
-        line = removeCommaSign(line);
-        line = removeOpenBracketSign(line);
-        line = removeCloseBracketSign(line);
-        line = removeBacktickSign(line);
-
-        return line;
-    }
-
     public String[] removeAllSpecialSigns(String[] lineArray) {
         String[] primaryKeysWithoutSpecialSigns = new String[lineArray.length];
 
@@ -61,6 +37,15 @@ public class ParserUtilities {
         }
 
         return primaryKeysWithoutSpecialSigns;
+    }
+
+    public String removeAllSpecialSigns(String line) {
+        line = removeCommaSign(line);
+        line = removeOpenBracketSign(line);
+        line = removeCloseBracketSign(line);
+        line = removeBacktickSign(line);
+
+        return line;
     }
 
     public String[] getLineInformationFrom(String line) {
@@ -74,27 +59,28 @@ public class ParserUtilities {
                 .toArray(String[]::new);
     }
 
-    private String removeCommaSign(String line) {
-        return line.replace(specialSigns.COMMA.getSign(),"");
+    public String removeCommaSign(String line) {
+        return line.replace(COMMA.getSign(),"");
     }
 
-    private String removeOpenBracketSign(String line) {
-        return line.replace(specialSigns.OPEN_BRACKET.getSign(),"");
+    public String removeOpenBracketSign(String line) {
+        return line.replace(OPEN_BRACKET.getSign(),"");
     }
 
-    private String removeCloseBracketSign(String line) {
-        return line.replace(specialSigns.CLOSE_BRACKET.getSign(),"");
+    public String removeCloseBracketSign(String line) {
+        return line.replace(CLOSE_BRACKET.getSign(),"");
     }
 
-    private String removeBacktickSign(String line) {
-        return line.replace(specialSigns.BACKTICK.getSign(),"");
+    public String removeBacktickSign(String line) {
+        return line.replace(BACKTICK.getSign(),"");
     }
 
     public String[] splitByComma(String line) {
-        return line.split(specialSigns.COMMA.getSign());
+        return line.split(COMMA.getSign());
     }
 
     public String[] splitBySpace(String line) {
-        return line.split(specialSigns.SPACE.getSign());
+        return line.split(SPACE.getSign());
     }
 }
+

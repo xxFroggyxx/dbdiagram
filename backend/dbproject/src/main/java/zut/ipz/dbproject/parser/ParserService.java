@@ -1,7 +1,6 @@
 package zut.ipz.dbproject.parser;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -15,6 +14,7 @@ import java.util.ArrayList;
 import java.util.IllegalFormatCodePointException;
 import java.util.List;
 
+import static zut.ipz.dbproject.constant.TableConstant.*;
 import static zut.ipz.dbproject.exception.ExceptionConstant.*;
 
 /**
@@ -83,7 +83,7 @@ public class ParserService {
         existingTable = true;
         String[] lineInfo = parserUtilities.getLineInformationFrom(line);
 
-        return new Table(lineInfo[TableConstant.TABLE_NAME.getIndex()]);
+        return new Table(lineInfo[TABLE_NAME.getIndex()]);
     }
 
     private static void parseUntilTableExists(Table table, String line) {
@@ -151,7 +151,7 @@ public class ParserService {
     private static String[] getPrimaryKeysFromLine(String line) {
         String[] lineInfo = parserUtilities.getLineInformationFrom(line);
 
-        String lineOfPrimaryKeys = lineInfo[TableConstant.PRIMARY_KEY_NAME.getIndex()];
+        String lineOfPrimaryKeys = lineInfo[PRIMARY_KEY_NAME.getIndex()];
         String[] primaryKeys = parserUtilities.splitByComma(lineOfPrimaryKeys);
 
         return primaryKeys;
@@ -196,21 +196,17 @@ public class ParserService {
     private static void setParametersSkippingBracket(Field field, String[] lineInfo) {
         int indexNeededToSkipBracket = 1;
 
-        String fieldName = lineInfo[TableConstant.FIELD_NAME.getIndex() + indexNeededToSkipBracket];
-        String fieldType = removeComma(lineInfo[TableConstant.FIELD_TYPE.getIndex() + indexNeededToSkipBracket]);
+        String fieldName = lineInfo[FIELD_NAME.getIndex() + indexNeededToSkipBracket];
+        String fieldType = parserUtilities.removeCommaSign(lineInfo[FIELD_TYPE.getIndex() + indexNeededToSkipBracket]);
 
         setNameAndTypeToField(fieldName, fieldType, field);
     }
 
     private static void setParameters(Field field, String[] lineInfo) {
-        String fieldName = lineInfo[TableConstant.FIELD_NAME.getIndex()];
-        String fieldType = removeComma(lineInfo[TableConstant.FIELD_TYPE.getIndex()]);
+        String fieldName = lineInfo[FIELD_NAME.getIndex()];
+        String fieldType = parserUtilities.removeCommaSign(lineInfo[FIELD_TYPE.getIndex()]);
 
         setNameAndTypeToField(fieldName, fieldType, field);
-    }
-
-    private static String removeComma(String element) {
-        return element.replace(",", "");
     }
 
     private static void setNameAndTypeToField(String fieldName, String fieldType, Field field) {
@@ -263,7 +259,7 @@ public class ParserService {
 
         setForeignKeyInCurrentField(currentField);
 
-        return new ForeignKey(relation.getReferencedTableName(), isOneToOne, relation.getCurrentTableName());
+        return new ForeignKey(relation.getCurrentTableName(), relation.getReferencedTableName(), isOneToOne);
     }
 
     private static void notNullOrLogError(Table table) {
@@ -294,21 +290,6 @@ public class ParserService {
     private static void addAllTablesToOutput() {
         for (Table table : tables) {
             output.append(table.toString());
-        }
-    }
-
-    @Getter
-    enum TableConstant {
-        TABLE_NAME(2),
-        PRIMARY_KEY_NAME(2),
-        FIELD_NAME(0),
-        FIELD_TYPE(1)
-        ;
-
-        private final int index;
-
-        TableConstant(int index) {
-            this.index = index;
         }
     }
 }

@@ -7,9 +7,9 @@ import lombok.*;
 @Getter
 @Setter
 public class ForeignKey {
+    private String currentTable;
     private String referencedTable;
     private boolean isOneToOne;
-    private String fieldTableName;
 
     @Override
     public String toString() {
@@ -20,7 +20,7 @@ public class ForeignKey {
         } else {
             stringBuilder.append(" ||--|{");
         }
-        stringBuilder.append(" ").append(fieldTableName).append(": \" \"");
+        stringBuilder.append(" ").append(currentTable).append(": \" \"");
         return stringBuilder.toString();
     }
 }

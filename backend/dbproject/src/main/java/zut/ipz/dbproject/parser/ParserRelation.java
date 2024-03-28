@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import static zut.ipz.dbproject.constant.RelationConstant.*;
+
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -37,31 +39,17 @@ public class ParserRelation {
     }
 
     private void assignComponents(String[] lineInfo) {
-        currentFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[RelationConstant.CURRENT_FIELD_NAME.getIndex()]);
+        currentFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[CURRENT_FIELD_NAME.getIndex()]);
 
-        referencedFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[RelationConstant.REFERENCED_FIELD_NAME.getIndex()]);
-        referencedTableName = parserUtilities.removeAllSpecialSigns(lineInfo[RelationConstant.REFERENCED_TABLE_NAME.getIndex()]);
+        referencedFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[REFERENCED_FIELD_NAME.getIndex()]);
+        referencedTableName = parserUtilities.removeAllSpecialSigns(lineInfo[REFERENCED_TABLE_NAME.getIndex()]);
 
     }
 
     private void assignComponents(String[] lineInfo, int skip) {
-        currentFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[RelationConstant.CURRENT_FIELD_NAME.getIndex() + skip]);
+        currentFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[CURRENT_FIELD_NAME.getIndex() + skip]);
 
-        referencedFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[RelationConstant.REFERENCED_FIELD_NAME.getIndex() + skip]);
-        referencedTableName = parserUtilities.removeAllSpecialSigns(lineInfo[RelationConstant.REFERENCED_TABLE_NAME.getIndex() + skip]);
-    }
-
-    @Getter
-    enum RelationConstant {
-        REFERENCED_FIELD_NAME(5),
-        REFERENCED_TABLE_NAME(4),
-        CURRENT_FIELD_NAME(2)
-        ;
-
-        private final int index;
-
-        RelationConstant(int index) {
-            this.index = index;
-        }
+        referencedFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[REFERENCED_FIELD_NAME.getIndex() + skip]);
+        referencedTableName = parserUtilities.removeAllSpecialSigns(lineInfo[REFERENCED_TABLE_NAME.getIndex() + skip]);
     }
 }

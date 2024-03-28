@@ -27,7 +27,7 @@ public class ParserController {
     private static final String FILE_EMPTY = "File is empty";
     private static final String FILE_NOT_SQL = "File is not sql";
     private static final String FILE_TOO_BIG = "File is too big";
-    private static final int FILE_SIZE_LIMIT = 10485760;
+    private static final int FILE_SIZE_LIMIT = 10_485_760;
 
     private final Logger logger = LoggerFactory.getLogger(ParserController.class.getName());
 

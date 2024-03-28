@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
+import static zut.ipz.dbproject.constant.SpecialSign.*;
+import static zut.ipz.dbproject.constant.MermaidConstant.*;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Component
@@ -30,34 +33,60 @@ public class Field {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(type).append(" ");
-        stringBuilder.append(name).append(" ");
-        boolean isAddedConstrain = false;
+        stringBuilder = appendFieldType(stringBuilder);
+        stringBuilder = appendFieldName(stringBuilder);
+
+        stringBuilder = appendConstraints(stringBuilder);
+
+        return stringBuilder.toString();
+    }
+
+    private StringBuilder appendFieldType(StringBuilder stringBuilder) {
+        return stringBuilder.append(type).append(SPACE.getSign());
+    }
+
+    private StringBuilder appendFieldName(StringBuilder stringBuilder) {
+        return stringBuilder.append(name).append(SPACE.getSign());
+    }
+
+    private StringBuilder appendConstraints(StringBuilder stringBuilder) {
+        boolean isAddedConstraint = false;
+
         if (isPrimaryKey) {
-            isAddedConstrain = true;
-            stringBuilder.append("pk").append(",");
+            isAddedConstraint = true;
+            stringBuilder = appendPrimaryKey(stringBuilder);
         }
         if (isForeignKey) {
-            isAddedConstrain = true;
-            stringBuilder.append("fk").append(",");
+            isAddedConstraint = true;
+            stringBuilder = appendForeignKey(stringBuilder);
         }
         if (isUnique) {
-            isAddedConstrain = true;
-            stringBuilder.append("uk").append(",");
+            isAddedConstraint = true;
+            stringBuilder = appendUnique(stringBuilder);
         }
 
-        /**
-         * If we have comma at the end of the string, we need to remove it.
-         * because it will cause an error in the mermaid query.
-         * We can skip this step if we add uk to the end of the string.
-         * because we don't have comma at the end of the string.
-         */
-        if (isAddedConstrain) {
-            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-
+        //  If we have comma at the end of the string, we need to remove it,
+        //  because it will cause an error in the mermaid query.
+        if (isAddedConstraint) {
+            deleteCommaAtTheEndOfConstraints(stringBuilder);
         }
-        return stringBuilder.toString();
 
+        return stringBuilder;
+    }
 
+    private StringBuilder appendPrimaryKey(StringBuilder stringBuilder) {
+        return stringBuilder.append(PRIMARY_KEY.getSymbol()).append(COMMA.getSign());
+    }
+
+    private StringBuilder appendForeignKey(StringBuilder stringBuilder) {
+        return stringBuilder.append(FOREIGN_KEY.getSymbol()).append(COMMA.getSign());
+    }
+
+    private StringBuilder appendUnique(StringBuilder stringBuilder) {
+        return stringBuilder.append(UNIQUE.getSymbol()).append(COMMA.getSign());
+    }
+
+    private void deleteCommaAtTheEndOfConstraints(StringBuilder stringBuilder) {
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
     }
 }

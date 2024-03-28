@@ -29,8 +29,8 @@ public class ExceptionController extends ResponseEntityExceptionHandler {
             return ResponseEntity.badRequest().body(PRIMARY_KEY_NOT_FOUND.getMessage());
         } else if (e.getCodePoint() == ERROR_WHILE_READING_FILE.getErrorCode()) {
             return ResponseEntity.internalServerError().body(ERROR_WHILE_READING_FILE.getMessage());
+        } else {
+            return ResponseEntity.badRequest().body("Unknown error");
         }
-        return ResponseEntity.badRequest().body("Unknown error");
     }
-
 }
