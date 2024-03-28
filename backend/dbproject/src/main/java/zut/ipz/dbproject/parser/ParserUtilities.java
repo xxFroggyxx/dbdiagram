@@ -60,27 +60,27 @@ public class ParserUtilities {
     }
 
     public String removeCommaSign(String line) {
-        return line.replace(COMMA.getSign(),"");
+        return line.replace(COMMA.getSymbol(),"");
     }
 
     public String removeOpenBracketSign(String line) {
-        return line.replace(OPEN_BRACKET.getSign(),"");
+        return line.replace(OPEN_BRACKET.getSymbol(),"");
     }
 
     public String removeCloseBracketSign(String line) {
-        return line.replace(CLOSE_BRACKET.getSign(),"");
+        return line.replace(CLOSE_BRACKET.getSymbol(),"");
     }
 
     public String removeBacktickSign(String line) {
-        return line.replace(BACKTICK.getSign(),"");
+        return line.replace(BACKTICK.getSymbol(),"");
     }
 
     public String[] splitByComma(String line) {
-        return line.split(COMMA.getSign());
+        return line.split(COMMA.getSymbol());
     }
 
     public String[] splitBySpace(String line) {
-        return line.split(SPACE.getSign());
+        return line.split(SPACE.getSymbol());
     }
 }
 

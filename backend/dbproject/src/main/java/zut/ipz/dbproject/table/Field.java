@@ -42,11 +42,11 @@ public class Field {
     }
 
     private StringBuilder appendFieldType(StringBuilder stringBuilder) {
-        return stringBuilder.append(type).append(SPACE.getSign());
+        return stringBuilder.append(type).append(SPACE.getSymbol());
     }
 
     private StringBuilder appendFieldName(StringBuilder stringBuilder) {
-        return stringBuilder.append(name).append(SPACE.getSign());
+        return stringBuilder.append(name).append(SPACE.getSymbol());
     }
 
     private StringBuilder appendConstraints(StringBuilder stringBuilder) {
@@ -75,15 +75,15 @@ public class Field {
     }
 
     private StringBuilder appendPrimaryKey(StringBuilder stringBuilder) {
-        return stringBuilder.append(PRIMARY_KEY.getSymbol()).append(COMMA.getSign());
+        return stringBuilder.append(PRIMARY_KEY.getSymbol()).append(COMMA.getSymbol());
     }
 
     private StringBuilder appendForeignKey(StringBuilder stringBuilder) {
-        return stringBuilder.append(FOREIGN_KEY.getSymbol()).append(COMMA.getSign());
+        return stringBuilder.append(FOREIGN_KEY.getSymbol()).append(COMMA.getSymbol());
     }
 
     private StringBuilder appendUnique(StringBuilder stringBuilder) {
-        return stringBuilder.append(UNIQUE.getSymbol()).append(COMMA.getSign());
+        return stringBuilder.append(UNIQUE.getSymbol()).append(COMMA.getSymbol());
     }
 
     private void deleteCommaAtTheEndOfConstraints(StringBuilder stringBuilder) {

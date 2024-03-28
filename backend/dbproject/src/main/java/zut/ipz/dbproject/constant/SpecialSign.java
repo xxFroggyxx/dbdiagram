@@ -9,9 +9,9 @@ public enum SpecialSign {
     CLOSE_BRACKET(")"),
     BACKTICK("`"),
     SPACE(" ");
-    private final String sign;
+    private final String symbol;
 
     SpecialSign(String sign) {
-        this.sign = sign;
+        this.symbol = sign;
     }
 }
