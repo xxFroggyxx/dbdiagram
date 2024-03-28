@@ -9,6 +9,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.util.IllegalFormatCodePointException;
 
+import static zut.ipz.dbproject.exception.ExceptionConstant.*;
+
 @ControllerAdvice
 public class ExceptionController extends ResponseEntityExceptionHandler {
 
@@ -19,12 +21,14 @@ public class ExceptionController extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(IllegalFormatCodePointException.class)
     protected ResponseEntity<String> handleIllegalFormatCodePointException(IllegalFormatCodePointException e) {
-        if (e.getCodePoint() == 0) {
-            return ResponseEntity.badRequest().body("No table found");
-        } else if (e.getCodePoint() == 1) {
-            return ResponseEntity.badRequest().body("No field found");
-        } else if (e.getCodePoint() == 2) {
-            return ResponseEntity.internalServerError().body("Error while reading file");
+        if (e.getCodePoint() == NO_TABLE_FOUND.getErrorCode()) {
+            return ResponseEntity.badRequest().body(NO_TABLE_FOUND.getMessage());
+        } else if (e.getCodePoint() == NO_FIELD_FOUND.getErrorCode()) {
+            return ResponseEntity.badRequest().body(NO_FIELD_FOUND.getMessage());
+        } else if (e.getCodePoint() == PRIMARY_KEY_NOT_FOUND.getErrorCode()) {
+            return ResponseEntity.badRequest().body(PRIMARY_KEY_NOT_FOUND.getMessage());
+        } else if (e.getCodePoint() == ERROR_WHILE_READING_FILE.getErrorCode()) {
+            return ResponseEntity.internalServerError().body(ERROR_WHILE_READING_FILE.getMessage());
         }
         return ResponseEntity.badRequest().body("Unknown error");
     }

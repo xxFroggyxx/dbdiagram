@@ -53,6 +53,16 @@ public class ParserUtilities {
         return line;
     }
 
+    public String[] removeAllSpecialSigns(String[] lineArray) {
+        String[] primaryKeysWithoutSpecialSigns = new String[lineArray.length];
+
+        for (int i = 0; i < lineArray.length; i++) {
+            primaryKeysWithoutSpecialSigns[i] = removeAllSpecialSigns(lineArray[i]);
+        }
+
+        return primaryKeysWithoutSpecialSigns;
+    }
+
     public String[] getLineInformationFrom(String line) {
         String lineWithoutBackticks = removeBacktickSign(line);
         return splitBySpaceAndRemoveEmptyElements(lineWithoutBackticks);

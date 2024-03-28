@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.IllegalFormatCodePointException;
 import java.util.List;
 
+import static zut.ipz.dbproject.exception.ExceptionConstant.*;
+
 /**
  * This class contains main logic for parsing.
  * This class includes one public method:
@@ -138,10 +140,10 @@ public class ParserService {
 
     private static void parsePrimaryKey(String line, Table table) {
         String[] primaryKeys = getPrimaryKeysFromLine(line);
-        String[] primaryKeysWithoutSpecialSigns = removeAllSpecialSigns(primaryKeys);
+        String[] primaryKeysWithoutSpecialSigns = parserUtilities.removeAllSpecialSigns(primaryKeys);
 
         for (String primaryKey : primaryKeysWithoutSpecialSigns) {
-            Field field = findField(table, primaryKey);
+            Field field = findPrimaryKeyField(table, primaryKey);
             field.setPrimaryKey(true);
         }
     }
@@ -155,21 +157,11 @@ public class ParserService {
         return primaryKeys;
     }
 
-    private static String[] removeAllSpecialSigns(String[] primaryKeys) {
-        String[] primaryKeysWithoutSpecialSigns = new String[primaryKeys.length];
-
-        for (int i = 0; i < primaryKeys.length; i++) {
-            primaryKeysWithoutSpecialSigns[i] = parserUtilities.removeAllSpecialSigns(primaryKeys[i]);
-        }
-
-        return primaryKeysWithoutSpecialSigns;
-    }
-
-    private static Field findField(Table table, String primaryKey) {
+    private static Field findPrimaryKeyField(Table table, String primaryKey) {
         Field field = parserUtilities.findFieldInTableBy(table, primaryKey);
 
         if (fieldNotExists(field)) {
-            loggerError("Primary key not found", 1);
+            loggerError(PRIMARY_KEY_NOT_FOUND.getMessage(), PRIMARY_KEY_NOT_FOUND.getErrorCode());
         }
 
         return field;
@@ -276,13 +268,13 @@ public class ParserService {
 
     private static void notNullOrLogError(Table table) {
         if (table == null) {
-            loggerError("Referenced table not found", 0);
+            loggerError(NO_TABLE_FOUND.getMessage(), NO_TABLE_FOUND.getErrorCode());
         }
     }
 
     private static void notNullOrLogError(Field field) {
         if (field == null) {
-            loggerError("Referenced field not found", 1);
+            loggerError(NO_FIELD_FOUND.getMessage(), NO_FIELD_FOUND.getErrorCode());
         }
     }
 
