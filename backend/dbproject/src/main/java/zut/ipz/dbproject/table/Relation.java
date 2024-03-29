@@ -1,9 +1,10 @@
-package zut.ipz.dbproject.parser;
+package zut.ipz.dbproject.table;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
+import zut.ipz.dbproject.formatter.LineFormatter;
 
 import static zut.ipz.dbproject.constant.RelationConstant.*;
 
@@ -12,23 +13,21 @@ import static zut.ipz.dbproject.constant.RelationConstant.*;
 @NoArgsConstructor
 @Component
 @Getter
-public class ParserRelation {
+public class Relation {
     private String referencedFieldName;
     private String currentFieldName;
     private String referencedTableName;
     private String currentTableName;
     private String relationLine;
 
-    private static final ParserUtilities parserUtilities = new ParserUtilities();
-
-    public ParserRelation(String currentTableName, String line) {
+    public Relation(String currentTableName, String line) {
         this.currentTableName = currentTableName;
 
         createRelationByAssigningComponents(line);
     }
 
     private void createRelationByAssigningComponents(String line) {
-        String[] lineInfo = parserUtilities.getLineInformationFrom(line);
+        String[] lineInfo = LineFormatter.getLineInformationFrom(line);
 
         if (line.contains("CONSTRAINT")) {
             int indexNeededToSkipConstraintWord = 2;
@@ -39,17 +38,17 @@ public class ParserRelation {
     }
 
     private void assignComponents(String[] lineInfo) {
-        currentFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[CURRENT_FIELD_NAME.getIndex()]);
+        currentFieldName = LineFormatter.removeAllSpecialSigns(lineInfo[CURRENT_FIELD_NAME.getIndex()]);
 
-        referencedFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[REFERENCED_FIELD_NAME.getIndex()]);
-        referencedTableName = parserUtilities.removeAllSpecialSigns(lineInfo[REFERENCED_TABLE_NAME.getIndex()]);
+        referencedFieldName = LineFormatter.removeAllSpecialSigns(lineInfo[REFERENCED_FIELD_NAME.getIndex()]);
+        referencedTableName = LineFormatter.removeAllSpecialSigns(lineInfo[REFERENCED_TABLE_NAME.getIndex()]);
 
     }
 
     private void assignComponents(String[] lineInfo, int skip) {
-        currentFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[CURRENT_FIELD_NAME.getIndex() + skip]);
+        currentFieldName = LineFormatter.removeAllSpecialSigns(lineInfo[CURRENT_FIELD_NAME.getIndex() + skip]);
 
-        referencedFieldName = parserUtilities.removeAllSpecialSigns(lineInfo[REFERENCED_FIELD_NAME.getIndex() + skip]);
-        referencedTableName = parserUtilities.removeAllSpecialSigns(lineInfo[REFERENCED_TABLE_NAME.getIndex() + skip]);
+        referencedFieldName = LineFormatter.removeAllSpecialSigns(lineInfo[REFERENCED_FIELD_NAME.getIndex() + skip]);
+        referencedTableName = LineFormatter.removeAllSpecialSigns(lineInfo[REFERENCED_TABLE_NAME.getIndex() + skip]);
     }
 }

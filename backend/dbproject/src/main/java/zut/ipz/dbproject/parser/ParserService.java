@@ -6,8 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import zut.ipz.dbproject.file.FileUtils;
+import zut.ipz.dbproject.finder.Finder;
+import zut.ipz.dbproject.formatter.LineFormatter;
 import zut.ipz.dbproject.table.Field;
 import zut.ipz.dbproject.table.ForeignKey;
+import zut.ipz.dbproject.table.Relation;
 import zut.ipz.dbproject.table.Table;
 
 import java.util.ArrayList;
@@ -25,9 +28,8 @@ import static zut.ipz.dbproject.exception.ExceptionConstant.*;
 @Service
 @AllArgsConstructor
 public class ParserService {
-    private static final ParserUtilities parserUtilities = new ParserUtilities();
     private static final Logger logger = LoggerFactory.getLogger(ParserService.class.getName());
-    private static List<ParserRelation> relations = new ArrayList<>();
+    private static List<Relation> relations = new ArrayList<>();
     private static List<Table> tables = new ArrayList<>();
     private static boolean existingTable = false;
     private static StringBuilder output = new StringBuilder();
@@ -81,7 +83,7 @@ public class ParserService {
 
     private static Table createTableFrom(String line) {
         existingTable = true;
-        String[] lineInfo = parserUtilities.getLineInformationFrom(line);
+        String[] lineInfo = LineFormatter.getLineInformationFrom(line);
 
         return new Table(lineInfo[TABLE_NAME.getIndex()]);
     }
@@ -131,7 +133,7 @@ public class ParserService {
     }
 
     private static void addNewRelation(String tableName, String line) {
-        relations.add(new ParserRelation(tableName, line));
+        relations.add(new Relation(tableName, line));
     }
 
     private static boolean isPrimaryKeyWithBracket(String line) {
@@ -140,7 +142,7 @@ public class ParserService {
 
     private static void parsePrimaryKey(String line, Table table) {
         String[] primaryKeys = getPrimaryKeysFromLine(line);
-        String[] primaryKeysWithoutSpecialSigns = parserUtilities.removeAllSpecialSigns(primaryKeys);
+        String[] primaryKeysWithoutSpecialSigns = LineFormatter.removeAllSpecialSigns(primaryKeys);
 
         for (String primaryKey : primaryKeysWithoutSpecialSigns) {
             Field field = findPrimaryKeyField(table, primaryKey);
@@ -149,16 +151,16 @@ public class ParserService {
     }
 
     private static String[] getPrimaryKeysFromLine(String line) {
-        String[] lineInfo = parserUtilities.getLineInformationFrom(line);
+        String[] lineInfo = LineFormatter.getLineInformationFrom(line);
 
         String lineOfPrimaryKeys = lineInfo[PRIMARY_KEY_NAME.getIndex()];
-        String[] primaryKeys = parserUtilities.splitByComma(lineOfPrimaryKeys);
+        String[] primaryKeys = LineFormatter.splitByComma(lineOfPrimaryKeys);
 
         return primaryKeys;
     }
 
     private static Field findPrimaryKeyField(Table table, String primaryKey) {
-        Field field = parserUtilities.findFieldInTableBy(table, primaryKey);
+        Field field = Finder.findFieldInTableBy(table, primaryKey);
 
         if (fieldNotExists(field)) {
             loggerError(PRIMARY_KEY_NOT_FOUND.getMessage(), PRIMARY_KEY_NOT_FOUND.getErrorCode());
@@ -172,7 +174,7 @@ public class ParserService {
     }
 
     private static Field createField(String line) {
-        String[] lineInfo = parserUtilities.getLineInformationFrom(line);
+        String[] lineInfo = LineFormatter.getLineInformationFrom(line);
 
         Field field = new Field();
         setNameAndType(field, lineInfo);
@@ -197,14 +199,14 @@ public class ParserService {
         int indexNeededToSkipBracket = 1;
 
         String fieldName = lineInfo[FIELD_NAME.getIndex() + indexNeededToSkipBracket];
-        String fieldType = parserUtilities.removeCommaSign(lineInfo[FIELD_TYPE.getIndex() + indexNeededToSkipBracket]);
+        String fieldType = LineFormatter.removeCommaSign(lineInfo[FIELD_TYPE.getIndex() + indexNeededToSkipBracket]);
 
         setNameAndTypeToField(fieldName, fieldType, field);
     }
 
     private static void setParameters(Field field, String[] lineInfo) {
         String fieldName = lineInfo[FIELD_NAME.getIndex()];
-        String fieldType = parserUtilities.removeCommaSign(lineInfo[FIELD_TYPE.getIndex()]);
+        String fieldType = LineFormatter.removeCommaSign(lineInfo[FIELD_TYPE.getIndex()]);
 
         setNameAndTypeToField(fieldName, fieldType, field);
     }
@@ -233,25 +235,25 @@ public class ParserService {
     }
 
     private static void addForeignKeysToTables() {
-        for (ParserRelation relation : relations) {
+        for (Relation relation : relations) {
             addForeignKeyToTable(relation);
         }
     }
 
-    private static void addForeignKeyToTable(ParserRelation relation) {
+    private static void addForeignKeyToTable(Relation relation) {
         ForeignKey foreignKey = createForeignKey(relation);
-        Table table = parserUtilities.findTableByName(tables, relation.getCurrentTableName());
+        Table table = Finder.findTableByName(tables, relation.getCurrentTableName());
         table.addForeignKey(foreignKey);
     }
 
-    private static ForeignKey createForeignKey(ParserRelation relation) {
-        Table referencedTable = parserUtilities.findTableByName(tables, relation.getReferencedTableName());
-        Table currentTable = parserUtilities.findTableByName(tables, relation.getCurrentTableName());
+    private static ForeignKey createForeignKey(Relation relation) {
+        Table referencedTable = Finder.findTableByName(tables, relation.getReferencedTableName());
+        Table currentTable = Finder.findTableByName(tables, relation.getCurrentTableName());
         notNullOrLogError(referencedTable);
         notNullOrLogError(currentTable);
 
-        Field referencedField = parserUtilities.findFieldInTableBy(referencedTable, relation.getReferencedFieldName());
-        Field currentField = parserUtilities.findFieldInTableBy(currentTable, relation.getCurrentFieldName());
+        Field referencedField = Finder.findFieldInTableBy(referencedTable, relation.getReferencedFieldName());
+        Field currentField = Finder.findFieldInTableBy(currentTable, relation.getCurrentFieldName());
         notNullOrLogError(referencedField);
         notNullOrLogError(currentField);
 
