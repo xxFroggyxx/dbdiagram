@@ -1,5 +1,6 @@
 package zut.ipz.dbproject.table;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.context.annotation.Import;
@@ -12,9 +13,10 @@ import java.util.List;
 class TableTest {
 
     @Test
-    void returns_parsed_table_when_given_valid_sql_file() {
+    void shouldReturnValidParsedTable() {
+
         // given
-        String name = "Tabela1";
+        String name = "Table1";
 
         List<Field> fields = List.of(
                 new Field("FirstField", "VARCHAR", true, false, false),
@@ -24,27 +26,28 @@ class TableTest {
         );
 
         List<ForeignKey> foreignKeys = List.of(
-                new ForeignKey("Tabela2", "Tabela1", false),
-                new ForeignKey("Tabela1", "Tabela3", false)
+                new ForeignKey("Table1", "Table2", false),
+                new ForeignKey("Table3", "Table1", false)
         );
 
         Table table = new Table(name, fields, foreignKeys);
 
         String expectedString =
                 """
-                    Tabela1{
+                    Table1{
                     VARCHAR FirstField pk
                     INT SecondField fk
                     DATE ThirdField uk
                     VARCHAR FourthField pk,fk,uk
                     }
-                    Tabela2 ||--|{ Tabela1: " "
-                    Tabela1 ||--|{ Tabela3: " "
-                """;
+                    Table2 ||--|{ Table1: " "
+                    Table1 ||--|{ Table3: " "
+                    """;
+
         // when
         String actualString = table.toString();
 
         // then
-        assert expectedString.equals(actualString);
+        Assertions.assertThat(expectedString).isEqualTo(actualString);
     }
 }

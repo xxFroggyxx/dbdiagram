@@ -1,5 +1,6 @@
 package zut.ipz.dbproject.table;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -16,7 +17,7 @@ class FieldTest {
             "DATE, ThirdField, false, false, true, DATE ThirdField uk",
             "VARCHAR, FourthField, true, true, true, 'VARCHAR FourthField pk,fk,uk'",
     })
-    void givenValidAttributesShouldReturnValidField(
+    void ShouldReturnValidField(
             String type,
             String name,
             boolean isPrimaryKey,
@@ -31,6 +32,6 @@ class FieldTest {
         String actualString = field.toString();
 
         // then
-        assert expectedString.equals(actualString);
+        Assertions.assertThat(expectedString).isEqualTo(actualString);
     }
 }
