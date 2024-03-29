@@ -2,6 +2,9 @@ package zut.ipz.dbproject.table;
 
 import lombok.*;
 
+import static zut.ipz.dbproject.constant.MermaidConstant.*;
+import static zut.ipz.dbproject.constant.SpecialSign.SPACE;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -14,13 +17,27 @@ public class ForeignKey {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
+
         stringBuilder.append(referencedTable);
-        if (isOneToOne) {
-            stringBuilder.append(" ||--||");
-        } else {
-            stringBuilder.append(" ||--|{");
-        }
-        stringBuilder.append(" ").append(currentTable).append(": \" \"");
+
+        appendRelationType(stringBuilder);
+
+        stringBuilder.append(SPACE.getSymbol()).append(currentTable);
+
+        appendRelationName(stringBuilder, EMPTY_RELATION_NAME.getSymbol());
+
         return stringBuilder.toString();
+    }
+
+    private void appendRelationType(StringBuilder stringBuilder) {
+        if (isOneToOne) {
+            stringBuilder.append(ONE_TO_ONE.getSymbol());
+        } else {
+            stringBuilder.append(ONE_TO_MANY.getSymbol());
+        }
+    }
+
+    private void appendRelationName(StringBuilder stringBuilder, String name) {
+        stringBuilder.append(name);
     }
 }

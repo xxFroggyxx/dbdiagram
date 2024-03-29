@@ -6,7 +6,10 @@ import lombok.Getter;
 public enum MermaidConstant {
     PRIMARY_KEY("pk"),
     FOREIGN_KEY("fk"),
-    UNIQUE("uk")
+    UNIQUE("uk"),
+    ONE_TO_ONE(" ||--||"),
+    ONE_TO_MANY(" ||--|{"),
+    EMPTY_RELATION_NAME(": \" \"")
     ;
 
     private final String symbol;

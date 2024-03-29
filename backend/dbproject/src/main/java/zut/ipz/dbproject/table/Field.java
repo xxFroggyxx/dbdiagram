@@ -33,9 +33,9 @@ public class Field {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
+
         stringBuilder = appendFieldType(stringBuilder);
         stringBuilder = appendFieldName(stringBuilder);
-
         stringBuilder = appendConstraints(stringBuilder);
 
         return stringBuilder.toString();
