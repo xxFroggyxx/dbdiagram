@@ -15,30 +15,36 @@ class TableTest {
     void returns_parsed_table_when_given_valid_sql_file() {
         // given
         String name = "Tabela1";
-        List<Field> fields = List.of(new Field("Field", "VARCHAR", true, false, false),
-                new Field("AnotherField", "INT", false, true, false),
+
+        List<Field> fields = List.of(
+                new Field("FirstField", "VARCHAR", true, false, false),
+                new Field("SecondField", "INT", false, true, false),
                 new Field("ThirdField", "DATE", false, false, true),
-                new Field("FourthField", "VARCHAR", true, true, true));
-        List<ForeignKey> foreignKey = List.of(
-                new ForeignKey("Tabela2", false, "Tabela1"),
-                new ForeignKey("Tabela1", false, "Tabela3"));
-        Table table = new Table(name, fields, foreignKey);
+                new Field("FourthField", "VARCHAR", true, true, true)
+        );
+
+        List<ForeignKey> foreignKeys = List.of(
+                new ForeignKey("Tabela2", "Tabela1", false),
+                new ForeignKey("Tabela1", "Tabela3", false)
+        );
+
+        Table table = new Table(name, fields, foreignKeys);
+
         String expectedString =
                 """
-                        Tabela1{
-                        VARCHAR Field pk
-                        INT AnotherField fk
-                        DATE ThirdField uk
-                        VARCHAR FourthField pk,fk,uk
-                        }
-                        Tabela2 ||--|{ Tabela1: " "
-                        Tabela1 ||--|{ Tabela3: " "
-                                        """;
+                    Tabela1{
+                    VARCHAR FirstField pk
+                    INT SecondField fk
+                    DATE ThirdField uk
+                    VARCHAR FourthField pk,fk,uk
+                    }
+                    Tabela2 ||--|{ Tabela1: " "
+                    Tabela1 ||--|{ Tabela3: " "
+                """;
         // when
         String actualString = table.toString();
 
         // then
-
         assert expectedString.equals(actualString);
     }
 }
